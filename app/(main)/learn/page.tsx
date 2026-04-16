@@ -16,16 +16,25 @@ const LearnPage = async () => {
   let courseProgress: CourseProgress | null = null;
 
   try {
-    [userProgress, units, courseProgress] = await Promise.all([
-      api<UserProgressType>("/api/v1/users/me/progress"),
-      api<UnitSummary[]>("/api/v1/courses/active/units"),
-      api<CourseProgress>("/api/v1/users/me/course-progress"),
-    ]);
+    userProgress = await api<UserProgressType>("/api/v1/users/me/progress");
   } catch {
     redirect("/login");
   }
 
-  if (!courseProgress || !userProgress || !userProgress.activeCourse) {
+  if (!userProgress || !userProgress.activeCourse) {
+    redirect("/courses");
+  }
+
+  try {
+    [units, courseProgress] = await Promise.all([
+      api<UnitSummary[]>("/api/v1/courses/active/units"),
+      api<CourseProgress>("/api/v1/users/me/course-progress"),
+    ]);
+  } catch {
+    redirect("/courses");
+  }
+
+  if (!courseProgress) {
     redirect("/courses");
   }
 

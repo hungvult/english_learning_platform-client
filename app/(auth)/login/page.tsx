@@ -5,8 +5,10 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
+import { persistAuthToken } from "@/lib/auth-token";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
+import type { TokenResponse } from "@/types/api";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -18,11 +20,12 @@ export default function LoginPage() {
     e.preventDefault();
     startTransition(async () => {
       try {
-        await api("/api/v1/auth/login", {
+        const token = await api<TokenResponse>("/api/v1/auth/login", {
           method: "POST",
           body: JSON.stringify({ email, password }),
         });
-        router.push("/learn");
+        persistAuthToken(token.access_token);
+        router.replace("/learn");
       } catch {
         toast.error("Invalid credentials. Please try again.");
       }

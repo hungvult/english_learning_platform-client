@@ -3,6 +3,11 @@
 
 export type ChallengeType = "SELECT" | "ASSIST";
 
+export interface TokenResponse {
+  access_token: string;
+  token_type: string;
+}
+
 export interface ChallengeOption {
   id: number;
   challengeId: number;
