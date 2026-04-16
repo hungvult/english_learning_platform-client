@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 export default function LoginPage() {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const onSubmit = (e: React.FormEvent) => {
@@ -20,7 +20,7 @@ export default function LoginPage() {
       try {
         await api("/api/v1/auth/login", {
           method: "POST",
-          body: JSON.stringify({ username, password }),
+          body: JSON.stringify({ email, password }),
         });
         router.push("/learn");
       } catch {
@@ -39,18 +39,18 @@ export default function LoginPage() {
         <form onSubmit={onSubmit} className="flex flex-col gap-y-4">
           <div className="flex flex-col gap-y-1">
             <label
-              htmlFor="username"
+              htmlFor="email"
               className="text-sm font-semibold text-neutral-600"
             >
-              Username
+              Email
             </label>
             <input
-              id="username"
-              type="text"
+              id="email"
+              type="email"
               required
-              autoComplete="username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className={cn(
                 "rounded-xl border-2 px-4 py-2 text-sm outline-none",
                 "focus:border-sky-400 focus:ring-0"

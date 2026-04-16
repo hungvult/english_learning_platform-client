@@ -12,15 +12,21 @@ export default function RegisterPage() {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (password !== confirmPassword) {
+      toast.error("Passwords do not match.");
+      return;
+    }
     startTransition(async () => {
       try {
         await api("/api/v1/auth/register", {
           method: "POST",
-          body: JSON.stringify({ username, password }),
+          body: JSON.stringify({ username, email, password }),
         });
         router.push("/learn");
       } catch {
@@ -60,6 +66,27 @@ export default function RegisterPage() {
 
           <div className="flex flex-col gap-y-1">
             <label
+              htmlFor="email"
+              className="text-sm font-semibold text-neutral-600"
+            >
+              Email
+            </label>
+            <input
+              id="email"
+              type="email"
+              required
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className={cn(
+                "rounded-xl border-2 px-4 py-2 text-sm outline-none",
+                "focus:border-sky-400"
+              )}
+            />
+          </div>
+
+          <div className="flex flex-col gap-y-1">
+            <label
               htmlFor="password"
               className="text-sm font-semibold text-neutral-600"
             >
@@ -72,6 +99,27 @@ export default function RegisterPage() {
               autoComplete="new-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              className={cn(
+                "rounded-xl border-2 px-4 py-2 text-sm outline-none",
+                "focus:border-sky-400"
+              )}
+            />
+          </div>
+
+          <div className="flex flex-col gap-y-1">
+            <label
+              htmlFor="confirmPassword"
+              className="text-sm font-semibold text-neutral-600"
+            >
+              Confirm Password
+            </label>
+            <input
+              id="confirmPassword"
+              type="password"
+              required
+              autoComplete="new-password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
               className={cn(
                 "rounded-xl border-2 px-4 py-2 text-sm outline-none",
                 "focus:border-sky-400"
