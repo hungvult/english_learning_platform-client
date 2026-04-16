@@ -89,3 +89,15 @@ export interface LessonCompleteResponse {
   heartsAfter: number;
   pointsAfter: number;
 }
+
+export interface UserProfile {
+  id: string;
+  username: string;
+  email: string;
+  cefr_level: string | null;
+  total_xp: number;
+  hearts: number;
+  gems: number;
+  current_streak: number;
+  is_admin: boolean;
+}
