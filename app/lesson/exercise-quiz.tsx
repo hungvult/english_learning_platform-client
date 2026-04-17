@@ -16,8 +16,6 @@ import type {
   AnswerDetail,
   LessonSubmission,
   ProgressResponse,
-  EvaluateRequest,
-  EvaluateResponse,
 } from "@/types/api";
 
 import { ExerciseEngine } from "@/components/exercises/exercise-engine";
@@ -152,28 +150,47 @@ export function ExerciseQuiz({ lesson, initialHearts }: ExerciseQuizProps) {
     }
 
     try {
-      const req: EvaluateRequest = {
-        exercise_id: currentExercise.id,
-        user_answer: rawAnswer,
-      };
+      const type = currentExercise.type;
+      const answerData = currentExercise.answer_data || {};
+      let isCorrect = false;
 
-      const res = await api<EvaluateResponse>("/api/v1/exercises/evaluate", {
-        method: "POST",
-        body: JSON.stringify(req),
-      });
+      if (type === "COMPLETE_CONVERSATION") {
+        isCorrect = String(rawAnswer) === String(answerData.correct_option_id || "");
+      } else if (type === "ARRANGE_WORDS") {
+        const correct = answerData.correct_sequence || [];
+        if (Array.isArray(rawAnswer)) {
+          isCorrect = JSON.stringify(rawAnswer.map(String)) === JSON.stringify(correct.map(String));
+        }
+      } else if (type === "COMPLETE_TRANSLATION") {
+        const correct = answerData.correct_words || [];
+        if (Array.isArray(rawAnswer)) {
+          isCorrect = JSON.stringify(rawAnswer.map((w: string) => w.trim().toLowerCase())) === 
+                     JSON.stringify(correct.map((w: string) => w.trim().toLowerCase()));
+        }
+      } else if (type === "PICTURE_MATCH") {
+        isCorrect = String(rawAnswer) === String(answerData.correct_option_id || "");
+      } else if (type === "TYPE_HEAR") {
+        const correct = answerData.correct_transcription || "";
+        isCorrect = String(rawAnswer).trim().toLowerCase() === correct.trim().toLowerCase();
+      } else if (type === "LISTEN_FILL") {
+        const correct = answerData.correct_sequence_ids || [];
+        if (Array.isArray(rawAnswer)) {
+          isCorrect = JSON.stringify(rawAnswer.map(String)) === JSON.stringify(correct.map(String));
+        }
+      } else if (type === "SPEAK_SENTENCE") {
+        const expected = answerData.expected_text || "";
+        isCorrect = String(rawAnswer).trim().toLowerCase() === expected.trim().toLowerCase();
+      }
 
-      if (res.is_correct) {
+      if (isCorrect) {
         setFeedbackStatus("correct");
       } else {
-        const correctStr = getCorrectAnswerString(currentExercise, res.answer_data);
+        const correctStr = getCorrectAnswerString(currentExercise, answerData);
         setCorrectAnswerText(correctStr);
-        // Fallback heart feature (per user review) -> do not deduct hearts
-        // const newHearts = Math.max(hearts - 1, 0);
-        // setHearts(newHearts);
         setFeedbackStatus("wrong");
       }
     } catch {
-      toast.error("Validation failed. Please check connection.");
+      toast.error("Validation failed.");
       setCurrentRawAnswer(undefined);
     }
   };
