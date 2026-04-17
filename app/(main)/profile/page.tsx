@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { toast } from "sonner";
 
+import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { FeedWrapper } from "@/components/feed-wrapper";
 import { UserProgress } from "@/components/user-progress";
@@ -13,6 +14,7 @@ import { Separator } from "@/components/ui/separator";
 import { UserProfile, UserProgress as UserProgressType } from "@/types/api";
 
 const ProfilePage = () => {
+  const router = useRouter();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [userProgress, setUserProgress] = useState<UserProgressType | null>(null);
   const [loading, setLoading] = useState(true);
@@ -22,6 +24,7 @@ const ProfilePage = () => {
     username: "",
     email: "",
     password: "",
+    confirmPassword: "",
     cefr_level: "",
   });
 
@@ -38,6 +41,7 @@ const ProfilePage = () => {
           username: profileData.username,
           email: profileData.email,
           password: "",
+          confirmPassword: "",
           cefr_level: profileData.cefr_level || "",
         });
       } catch (error) {
@@ -52,6 +56,12 @@ const ProfilePage = () => {
 
   const onUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (formData.password && formData.password !== formData.confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+
     setUpdating(true);
 
     try {
@@ -71,12 +81,23 @@ const ProfilePage = () => {
       });
 
       setProfile(updatedProfile);
-      setFormData((prev) => ({ ...prev, password: "" }));
+      setFormData((prev) => ({ ...prev, password: "", confirmPassword: "" }));
       toast.success("Profile updated successfully");
     } catch (error: any) {
       toast.error(error.message || "Failed to update profile");
     } finally {
       setUpdating(false);
+    }
+  };
+
+  const onLogout = async () => {
+    try {
+      await api("/api/v1/auth/logout", { method: "POST" });
+      router.push("/");
+      router.refresh();
+    } catch (error) {
+      console.error("Logout failed", error);
+      toast.error("Logout failed");
     }
   };
 
@@ -167,13 +188,37 @@ const ProfilePage = () => {
                 />
             </div>
 
+            <div className="flex flex-col gap-y-2">
+                <label className="text-sm font-bold text-neutral-600">Confirm Password</label>
+                <input
+                    type="password"
+                    autoComplete="new-password"
+                    className="rounded-xl border-2 border-b-4 bg-neutral-100 p-3 outline-none focus:border-green-600 active:border-b-2"
+                    value={formData.confirmPassword}
+                    onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                />
+            </div>
+
             <Button
                 type="submit"
                 disabled={updating}
                 size="lg"
                 className="w-full mt-4"
+                variant="secondary"
             >
                 {updating ? "Saving..." : "Save Changes"}
+            </Button>
+
+            <Separator className="my-4" />
+
+            <Button
+                type="button"
+                onClick={onLogout}
+                size="lg"
+                variant="danger"
+                className="w-full"
+            >
+                Sign out
             </Button>
           </form>
         </div>

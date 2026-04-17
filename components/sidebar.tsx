@@ -15,18 +15,6 @@ type SidebarProps = {
 };
 
 export const Sidebar = ({ className }: SidebarProps) => {
-  const router = useRouter();
-
-  const onLogout = async () => {
-    try {
-      await api("/api/v1/auth/logout", { method: "POST" });
-      router.push("/");
-      router.refresh();
-    } catch (error) {
-      console.error("Logout failed", error);
-    }
-  };
-
   return (
     <div
       className={cn(
@@ -53,16 +41,6 @@ export const Sidebar = ({ className }: SidebarProps) => {
           iconSrc="/leaderboard.svg"
         />
         <SidebarItem label="Profile" href="/profile" iconSrc="/profile.svg" />
-      </div>
-
-      <div className="p-4">
-        <button
-          onClick={onLogout}
-          className="flex w-full items-center gap-x-2 text-sm text-muted-foreground transition hover:opacity-75"
-        >
-          <LogOut className="h-5 w-5" />
-          <span>Sign out</span>
-        </button>
       </div>
     </div>
   );
