@@ -74,14 +74,13 @@ export function ListenFill({ exerciseId, data, onAnswer, disabled }: Props) {
         <button
           onClick={playAudio}
           disabled={playing}
-          className="flex items-center gap-2 rounded-xl border-2 border-slate-200 px-8 py-4 font-medium transition hover:border-sky-300 hover:bg-sky-50"
+          className="flex items-center justify-center h-16 w-16 rounded-2xl border-2 border-slate-200 font-medium transition hover:border-sky-300 hover:bg-sky-50"
         >
           {playing ? (
-            <Loader className="h-6 w-6 animate-spin text-sky-500" />
+            <Loader className="h-8 w-8 animate-spin text-sky-500" />
           ) : (
-            <Volume2 className="h-6 w-6 text-sky-500" />
+            <Volume2 className="h-8 w-8 text-sky-500" />
           )}
-          Play
         </button>
       </div>
 

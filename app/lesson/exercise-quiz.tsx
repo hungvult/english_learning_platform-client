@@ -87,18 +87,21 @@ export function ExerciseQuiz({ lesson, initialHearts }: ExerciseQuizProps) {
   const [answers, setAnswers] = useState<AnswerDetail[]>([]);
   const [questionStart, setQuestionStart] = useState(() => Date.now());
 
+  // We maintain a dynamic queue of exercises (to re-add wrong ones)
+  const [dynamicQueue, setDynamicQueue] = useState<Exercise[]>(lesson.exercises as Exercise[]);
+
   // Per-question feedback
-  const [feedbackStatus, setFeedbackStatus] = useState<"none" | "correct" | "wrong">("none");
+  const [feedbackStatus, setFeedbackStatus] = useState<"none" | "correct" | "wrong" | "skipped">("none");
   const [currentRawAnswer, setCurrentRawAnswer] = useState<unknown>(undefined);
   const [correctAnswerText, setCorrectAnswerText] = useState<string | undefined>();
+  const [skippedMessage, setSkippedMessage] = useState<string | undefined>();
 
   // Lesson finished
   const [finished, setFinished] = useState(false);
   const [progressResult, setProgressResult] = useState<ProgressResponse | null>(null);
 
-  const exercises: Exercise[] = lesson.exercises as Exercise[];
-  const percentage = Math.round((activeIndex / exercises.length) * 100);
-  const currentExercise = exercises[activeIndex];
+  const percentage = Math.round((activeIndex / lesson.exercises.length) * 100);
+  const currentExercise = dynamicQueue[activeIndex];
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -112,8 +115,11 @@ export function ExerciseQuiz({ lesson, initialHearts }: ExerciseQuizProps) {
     const needsListen = type === "TYPE_HEAR" || type === "LISTEN_FILL";
     const needsSpeak = type === "SPEAK_SENTENCE";
 
-    if ((needsListen && isListeningIgnored()) || (needsSpeak && isSpeakingIgnored())) {
-      // Small timeout to allow render cycle to finish before triggering state change
+    if ((needsListen && isListeningIgnored())) {
+      setSkippedMessage("Listening exercises are disabled for 15 minutes.");
+      setTimeout(() => handleAnswer("__SKIPPED__"), 50);
+    } else if ((needsSpeak && isSpeakingIgnored())) {
+      setSkippedMessage("Speaking exercises are disabled for 15 minutes.");
       setTimeout(() => handleAnswer("__SKIPPED__"), 50);
     }
   }, [currentExercise, feedbackStatus, isListeningIgnored, isSpeakingIgnored, mounted]);
@@ -127,12 +133,14 @@ export function ExerciseQuiz({ lesson, initialHearts }: ExerciseQuizProps) {
       ignoreLabel = "Can't listen now";
       onIgnore = () => {
         ignoreListeningFor15Min();
+        setSkippedMessage("Listening exercises disabled for 15 minutes.");
         handleAnswer("__SKIPPED__");
       };
     } else if (!isSpeakingIgnored() && currentExercise?.type === "SPEAK_SENTENCE") {
       ignoreLabel = "Can't speak now";
       onIgnore = () => {
         ignoreSpeakingFor15Min();
+        setSkippedMessage("Speaking exercises disabled for 15 minutes.");
         handleAnswer("__SKIPPED__");
       };
     }
@@ -143,9 +151,12 @@ export function ExerciseQuiz({ lesson, initialHearts }: ExerciseQuizProps) {
     if (feedbackStatus !== "none") return; // already answered this question
     setCurrentRawAnswer(rawAnswer);
 
-    // SPEAK_SENTENCE / offline fallback handling
+    // Offline fallback / explicitly skipped
     if (rawAnswer === "__SKIPPED__" || rawAnswer === "__NO_STT__") {
-      setFeedbackStatus("correct");
+      if (!skippedMessage && rawAnswer === "__NO_STT__") {
+        setSkippedMessage("Voice recognition unavailable.");
+      }
+      setFeedbackStatus("skipped");
       return;
     }
 
@@ -199,36 +210,45 @@ export function ExerciseQuiz({ lesson, initialHearts }: ExerciseQuizProps) {
   const handleContinue = () => {
     if (feedbackStatus === "none") return;
 
-    if (feedbackStatus === "wrong") {
-      // Retry: reset feedback so user can answer again
-      setFeedbackStatus("none");
-      setCurrentRawAnswer(undefined);
-      return;
+    const isSkipped = feedbackStatus === "skipped";
+
+    if (!isSkipped) {
+      const detail: AnswerDetail = {
+        exercise_id: currentExercise.id,
+        user_answer:
+          typeof currentRawAnswer === "string"
+            ? currentRawAnswer
+            : JSON.stringify(currentRawAnswer),
+        is_correct: feedbackStatus === "correct",
+        time_spent_ms: Date.now() - questionStart,
+      };
+      setAnswers([...answers, detail]);
     }
 
-    // Record answer
-    const detail: AnswerDetail = {
-      exercise_id: currentExercise.id,
-      user_answer:
-        typeof currentRawAnswer === "string"
-          ? currentRawAnswer
-          : JSON.stringify(currentRawAnswer),
-      is_correct: feedbackStatus === "correct",
-      time_spent_ms: Date.now() - questionStart,
-    };
-    const updatedAnswers = [...answers, detail];
-    setAnswers(updatedAnswers);
+    // Instead of retrying immediately, we queue wrong answers to end
+    let updatedQueue = dynamicQueue;
+    if (feedbackStatus === "wrong") {
+      updatedQueue = [...dynamicQueue, currentExercise];
+      setDynamicQueue(updatedQueue);
+    }
 
     const nextIndex = activeIndex + 1;
 
-    if (nextIndex >= exercises.length) {
-      // All exercises done — submit and show completion screen
-      submitLesson(updatedAnswers);
+    if (nextIndex >= updatedQueue.length) {
+      // All exercises done (queue is fully consumed) — submit and show completion screen
+      const finalAnswers = !isSkipped ? [...answers, {
+        exercise_id: currentExercise.id,
+        user_answer: typeof currentRawAnswer === "string" ? currentRawAnswer : JSON.stringify(currentRawAnswer),
+        is_correct: feedbackStatus === "correct",
+        time_spent_ms: Date.now() - questionStart,
+      }] : answers;
+      submitLesson(finalAnswers);
       setFinished(true);
     } else {
       setActiveIndex(nextIndex);
       setFeedbackStatus("none");
       setCurrentRawAnswer(undefined);
+      setSkippedMessage(undefined);
       setQuestionStart(Date.now());
     }
   };
@@ -321,7 +341,7 @@ export function ExerciseQuiz({ lesson, initialHearts }: ExerciseQuizProps) {
         <div className="mx-auto flex h-full max-w-[600px] flex-col gap-y-8 px-6 py-10 lg:px-0">
           {/* Exercise index indicator */}
           <p className="text-sm text-muted-foreground text-right">
-            {activeIndex + 1} / {exercises.length}
+            {activeIndex + 1} / {dynamicQueue.length}
           </p>
 
           {/* Exercise title */}

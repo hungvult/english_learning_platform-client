@@ -62,26 +62,24 @@ export function TypeHear({ exerciseId, data, onAnswer, disabled }: Props) {
         <button
           onClick={() => playAudio(1)}
           disabled={playing}
-          className="flex items-center gap-2 rounded-xl border-2 border-slate-200 px-6 py-3 font-medium transition hover:border-sky-300 hover:bg-sky-50"
+          className="flex items-center justify-center h-16 w-16 rounded-2xl border-2 border-slate-200 font-medium transition hover:border-sky-300 hover:bg-sky-50"
         >
           {playing && speed === 1 ? (
-            <Loader className="h-5 w-5 animate-spin text-sky-500" />
+            <Loader className="h-8 w-8 animate-spin text-sky-500" />
           ) : (
-            <Volume2 className="h-5 w-5 text-sky-500" />
+            <Volume2 className="h-8 w-8 text-sky-500" />
           )}
-          Normal
         </button>
         <button
           onClick={() => playAudio(0.5)}
           disabled={playing}
-          className="flex items-center gap-2 rounded-xl border-2 border-slate-200 px-6 py-3 font-medium transition hover:border-sky-300 hover:bg-sky-50"
+          className="flex items-center justify-center h-16 w-16 rounded-2xl border-2 border-slate-200 font-medium transition hover:border-sky-300 hover:bg-sky-50"
         >
           {playing && speed === 0.5 ? (
-            <Loader className="h-5 w-5 animate-spin text-sky-500" />
+            <Loader className="h-8 w-8 animate-spin text-sky-500" />
           ) : (
             <Volume2 className="h-5 w-5 text-sky-500" />
           )}
-          Slow
         </button>
       </div>
 

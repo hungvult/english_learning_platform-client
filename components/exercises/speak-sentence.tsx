@@ -44,8 +44,11 @@ export function SpeakSentence({ data, onAnswer, disabled }: Props) {
         recognition.lang = "en-US";
         recognition.interimResults = false;
 
+        let resultCaptured = false;
+
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         recognition.onresult = (event: any) => {
+          resultCaptured = true;
           const result = event.results[0][0].transcript;
           setTranscript(result);
           setState("done");
@@ -57,7 +60,11 @@ export function SpeakSentence({ data, onAnswer, disabled }: Props) {
         };
 
         recognition.onend = () => {
-          setState((prev) => (prev === "recording" ? "idle" : prev));
+          if (!resultCaptured) {
+            // User stopped mic but no transcript found. We just skip or fail gracefully.
+            setState("done");
+            onAnswer("");
+          }
         };
 
         recognition.start();
