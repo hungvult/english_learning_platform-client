@@ -217,3 +217,14 @@ export interface ProgressResponse {
   hearts: number;
   gems: number;
 }
+
+export interface EvaluateRequest {
+  exercise_id: string;
+  user_answer: unknown;
+}
+
+export interface EvaluateResponse {
+  is_correct: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  answer_data: Record<string, any>;
+}

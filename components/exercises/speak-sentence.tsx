@@ -17,7 +17,8 @@ export function SpeakSentence({ data, onAnswer, disabled }: Props) {
   const [state, setState] = useState<RecordState>("idle");
   const [transcript, setTranscript] = useState<string>("");
   const mediaRef = useRef<MediaRecorder | null>(null);
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const recognitionRef = useRef<any>(null);
 
   const startRecording = async () => {
     if (disabled || state !== "idle") return;
@@ -37,12 +38,14 @@ export function SpeakSentence({ data, onAnswer, disabled }: Props) {
         (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
       if (SpeechRecognition) {
-        const recognition = new SpeechRecognition() as SpeechRecognition;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const recognition = new SpeechRecognition() as any;
         recognitionRef.current = recognition;
         recognition.lang = "en-US";
         recognition.interimResults = false;
 
-        recognition.onresult = (event) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        recognition.onresult = (event: any) => {
           const result = event.results[0][0].transcript;
           setTranscript(result);
           setState("done");
@@ -54,7 +57,7 @@ export function SpeakSentence({ data, onAnswer, disabled }: Props) {
         };
 
         recognition.onend = () => {
-          if (state === "recording") setState("idle");
+          setState((prev) => (prev === "recording" ? "idle" : prev));
         };
 
         recognition.start();

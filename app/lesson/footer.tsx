@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { CheckCircle, XCircle } from "lucide-react";
 import { useKey, useMedia } from "react-use";
 
@@ -9,6 +10,9 @@ type FooterProps = {
   status: "correct" | "wrong" | "none" | "completed";
   disabled?: boolean;
   lessonId?: number;
+  correctAnswerText?: string;
+  onIgnore?: () => void;
+  ignoreLabel?: string;
 };
 
 export const Footer = ({
@@ -16,9 +20,19 @@ export const Footer = ({
   status,
   disabled,
   lessonId,
+  correctAnswerText,
+  onIgnore,
+  ignoreLabel,
 }: FooterProps) => {
   useKey("Enter", onCheck, {}, [onCheck]);
-  const isMobile = useMedia("(max-width: 1024px)");
+  const isMobile = useMedia("(max-width: 1024px)", false); // Provide a default for SSR
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const buttonSize = mounted && isMobile ? "sm" : "lg";
 
   return (
     <footer
@@ -29,36 +43,59 @@ export const Footer = ({
       )}
     >
       <div className="mx-auto flex h-full max-w-[1140px] items-center justify-between px-6 lg:px-10">
-        {status === "correct" && (
-          <div className="flex items-center text-base font-bold text-green-500 lg:text-2xl">
-            <CheckCircle className="mr-4 h-6 w-6 lg:h-10 lg:w-10" />
-            Nicely done!
-          </div>
-        )}
+        
+        {/* Left section for correct/wrong/completed status */}
+        <div className="flex flex-col">
+          {status === "correct" && (
+            <div className="flex items-center text-base font-bold text-green-500 lg:text-2xl">
+              <CheckCircle className="mr-4 h-6 w-6 lg:h-10 lg:w-10" />
+              Nicely done!
+            </div>
+          )}
 
-        {status === "wrong" && (
-          <div className="flex items-center text-base font-bold text-rose-500 lg:text-2xl">
-            <XCircle className="mr-4 h-6 w-6 lg:h-10 lg:w-10" />
-            Try again.
-          </div>
-        )}
+          {status === "wrong" && (
+            <div className="flex flex-col text-base font-bold text-rose-500 lg:text-2xl">
+              <div className="flex items-center">
+                <XCircle className="mr-4 h-6 w-6 lg:h-10 lg:w-10" />
+                Try again.
+              </div>
+              {correctAnswerText && (
+                <div className="mt-2 text-sm font-medium text-rose-500/80 lg:text-base lg:ml-14">
+                  Correct solution: <span className="font-bold text-rose-500">{correctAnswerText}</span>
+                </div>
+              )}
+            </div>
+          )}
 
-        {status === "completed" && (
-          <Button
-            variant="default"
-            size={isMobile ? "sm" : "lg"}
-            onClick={() => (window.location.href = `/lesson/${lessonId}`)}
-          >
-            Practice again
-          </Button>
-        )}
+          {status === "completed" && (
+            <Button
+              variant="default"
+              size={buttonSize}
+              onClick={() => (window.location.href = `/lesson/${lessonId}`)}
+            >
+              Practice again
+            </Button>
+          )}
+
+          {/* Render Ignore Button if status is none (user is deciding) and the prop is passed */}
+          {status === "none" && onIgnore && ignoreLabel && (
+            <Button
+              variant="ghost"
+              size={buttonSize}
+              onClick={onIgnore}
+              className="font-bold text-slate-500 hover:text-slate-400"
+            >
+              {ignoreLabel}
+            </Button>
+          )}
+        </div>
 
         <Button
           disabled={disabled}
           aria-disabled={disabled}
           className="ml-auto"
           onClick={onCheck}
-          size={isMobile ? "sm" : "lg"}
+          size={buttonSize}
           variant={status === "wrong" ? "danger" : "secondary"}
         >
           {status === "none" && "Check"}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import Confetti from "react-confetti";
@@ -9,12 +9,15 @@ import { toast } from "sonner";
 
 import { MAX_HEARTS } from "@/constants";
 import { api } from "@/lib/api";
+import { usePreferences } from "@/store/use-preferences";
 import type {
   Exercise,
   ExerciseLessonPayload,
   AnswerDetail,
   LessonSubmission,
   ProgressResponse,
+  EvaluateRequest,
+  EvaluateResponse,
 } from "@/types/api";
 
 import { ExerciseEngine } from "@/components/exercises/exercise-engine";
@@ -22,16 +25,40 @@ import { Header } from "./header";
 import { Footer } from "./footer";
 
 // ---------------------------------------------------------------------------
-// Local evaluation (client-side, deterministic)
+// Format correct answer for display (from server answer_data)
 // ---------------------------------------------------------------------------
-function evaluateAnswer(exercise: Exercise, rawAnswer: unknown): boolean {
-  // SPEAK_SENTENCE skipped offline — treat as correct (no penalty per Spec §6.3)
-  if (rawAnswer === "__SKIPPED__" || rawAnswer === "__NO_STT__") return true;
-  // All other types: the sub-component only fires onAnswer with the user's
-  // actual response. We can do a lightweight check here or trust a later
-  // server-side verify call. For now we optimistically mark the answer and
-  // let the server's submit endpoint be the source of truth for XP/streak.
-  return true; // Will be reconciled at submit time via server
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function getCorrectAnswerString(exercise: Exercise, answerData: any): string | undefined {
+  if (!answerData) return undefined;
+
+  switch (exercise.type) {
+    case "COMPLETE_CONVERSATION":
+    case "PICTURE_MATCH": {
+      const correctId = answerData.correct_option_id;
+      const opts = (exercise.question_data as any).options || [];
+      const match = opts.find((opt: any) => opt.id === correctId);
+      return match ? match.text : undefined;
+    }
+    case "ARRANGE_WORDS":
+      return (answerData.correct_sequence || []).join(" ");
+    case "COMPLETE_TRANSLATION":
+      return (answerData.correct_words || []).join(", ");
+    case "TYPE_HEAR":
+      return answerData.correct_transcription;
+    case "LISTEN_FILL": {
+      const correctIds = answerData.correct_sequence_ids || [];
+      const wordBank = (exercise.question_data as any).word_bank || [];
+      return correctIds
+        .map((id: string) => wordBank.find((w: any) => w.id === id)?.text)
+        .filter(Boolean)
+        .join(" ");
+    }
+    case "SPEAK_SENTENCE":
+      // User feedback: "Ignore speak_sentences"
+      return undefined;
+    default:
+      return undefined;
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -49,6 +76,7 @@ export function ExerciseQuiz({ lesson, initialHearts }: ExerciseQuizProps) {
   const router = useRouter();
   const { width, height } = useWindowSize();
   const [pending, startTransition] = useTransition();
+  const { isListeningIgnored, isSpeakingIgnored, ignoreListeningFor15Min, ignoreSpeakingFor15Min } = usePreferences();
 
   // Lesson clock
   const [startedAt] = useState(() => new Date().toISOString());
@@ -57,13 +85,14 @@ export function ExerciseQuiz({ lesson, initialHearts }: ExerciseQuizProps) {
   const [hearts, setHearts] = useState(initialHearts);
   const [activeIndex, setActiveIndex] = useState(0);
 
-  // Answer tracking
+  // Default true, unless they fail online evaluation
   const [answers, setAnswers] = useState<AnswerDetail[]>([]);
   const [questionStart, setQuestionStart] = useState(() => Date.now());
 
-  // Per-question feedback ("none" until answered, then "correct"/"wrong")
+  // Per-question feedback
   const [feedbackStatus, setFeedbackStatus] = useState<"none" | "correct" | "wrong">("none");
   const [currentRawAnswer, setCurrentRawAnswer] = useState<unknown>(undefined);
+  const [correctAnswerText, setCorrectAnswerText] = useState<string | undefined>();
 
   // Lesson finished
   const [finished, setFinished] = useState(false);
@@ -72,20 +101,80 @@ export function ExerciseQuiz({ lesson, initialHearts }: ExerciseQuizProps) {
   const exercises: Exercise[] = lesson.exercises as Exercise[];
   const percentage = Math.round((activeIndex / exercises.length) * 100);
   const currentExercise = exercises[activeIndex];
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Auto-skip logic for ignored modalities
+  useEffect(() => {
+    if (!currentExercise || feedbackStatus !== "none" || !mounted) return;
+    const type = currentExercise.type;
+    const needsListen = type === "TYPE_HEAR" || type === "LISTEN_FILL";
+    const needsSpeak = type === "SPEAK_SENTENCE";
+
+    if ((needsListen && isListeningIgnored()) || (needsSpeak && isSpeakingIgnored())) {
+      // Small timeout to allow render cycle to finish before triggering state change
+      setTimeout(() => handleAnswer("__SKIPPED__"), 50);
+    }
+  }, [currentExercise, feedbackStatus, isListeningIgnored, isSpeakingIgnored, mounted]);
+
+  // Determine Ignore button props for Footer
+  let ignoreLabel: string | undefined = undefined;
+  let onIgnore: (() => void) | undefined = undefined;
+  
+  if (mounted) {
+    if (!isListeningIgnored() && (currentExercise?.type === "TYPE_HEAR" || currentExercise?.type === "LISTEN_FILL")) {
+      ignoreLabel = "Can't listen now";
+      onIgnore = () => {
+        ignoreListeningFor15Min();
+        handleAnswer("__SKIPPED__");
+      };
+    } else if (!isSpeakingIgnored() && currentExercise?.type === "SPEAK_SENTENCE") {
+      ignoreLabel = "Can't speak now";
+      onIgnore = () => {
+        ignoreSpeakingFor15Min();
+        handleAnswer("__SKIPPED__");
+      };
+    }
+  }
 
   // ── Answer received from ExerciseEngine sub-component ──────────────────
-  const handleAnswer = (rawAnswer: unknown) => {
+  const handleAnswer = async (rawAnswer: unknown) => {
     if (feedbackStatus !== "none") return; // already answered this question
     setCurrentRawAnswer(rawAnswer);
 
-    const isCorrect = evaluateAnswer(currentExercise, rawAnswer);
-
-    if (isCorrect) {
+    // SPEAK_SENTENCE / offline fallback handling
+    if (rawAnswer === "__SKIPPED__" || rawAnswer === "__NO_STT__") {
       setFeedbackStatus("correct");
-    } else {
-      const newHearts = Math.max(hearts - 1, 0);
-      setHearts(newHearts);
-      setFeedbackStatus("wrong");
+      return;
+    }
+
+    try {
+      const req: EvaluateRequest = {
+        exercise_id: currentExercise.id,
+        user_answer: rawAnswer,
+      };
+
+      const res = await api<EvaluateResponse>("/api/v1/exercises/evaluate", {
+        method: "POST",
+        body: JSON.stringify(req),
+      });
+
+      if (res.is_correct) {
+        setFeedbackStatus("correct");
+      } else {
+        const correctStr = getCorrectAnswerString(currentExercise, res.answer_data);
+        setCorrectAnswerText(correctStr);
+        // Fallback heart feature (per user review) -> do not deduct hearts
+        // const newHearts = Math.max(hearts - 1, 0);
+        // setHearts(newHearts);
+        setFeedbackStatus("wrong");
+      }
+    } catch {
+      toast.error("Validation failed. Please check connection.");
+      setCurrentRawAnswer(undefined);
     }
   };
 
@@ -239,6 +328,9 @@ export function ExerciseQuiz({ lesson, initialHearts }: ExerciseQuizProps) {
         disabled={feedbackStatus === "none" || pending}
         status={feedbackStatus}
         onCheck={handleContinue}
+        correctAnswerText={correctAnswerText}
+        onIgnore={onIgnore}
+        ignoreLabel={ignoreLabel}
       />
     </>
   );
