@@ -1,7 +1,16 @@
 // TypeScript interfaces mirroring FastAPI response schemas.
-// Keep in sync with server/app/schemas/.
+// Keep in sync with server/app/schemas/
 
 export type ChallengeType = "SELECT" | "ASSIST";
+
+export type ExerciseType =
+  | "COMPLETE_CONVERSATION"
+  | "ARRANGE_WORDS"
+  | "COMPLETE_TRANSLATION"
+  | "PICTURE_MATCH"
+  | "TYPE_HEAR"
+  | "LISTEN_FILL"
+  | "SPEAK_SENTENCE";
 
 export interface TokenResponse {
   access_token: string;
@@ -36,15 +45,15 @@ export interface LessonPayload {
 }
 
 export interface LessonSummary {
-  id: number;
+  id: string;
   title: string;
   order: number;
   completed: boolean;
 }
 
 export interface UnitSummary {
-  id: number;
-  courseId: number;
+  id: string;
+  courseId: string;
   title: string;
   description: string;
   order: number;
@@ -52,13 +61,13 @@ export interface UnitSummary {
 }
 
 export interface Course {
-  id: number;
+  id: string;
   title: string;
   imageSrc: string;
 }
 
 export interface UserProgress {
-  userId: number;
+  userId: string;
   activeCourse: Course | null;
   hearts: number;
   points: number;
@@ -100,4 +109,111 @@ export interface UserProfile {
   gems: number;
   current_streak: number;
   is_admin: boolean;
+}
+
+// ---------------------------------------------------------------------------
+// New Exercise Engine types (Spec §6)
+// ---------------------------------------------------------------------------
+
+/** Text selectable option */
+export interface OptionText {
+  id: string;
+  text: string;
+}
+
+/** Image selectable option */
+export interface OptionImage {
+  id: string;
+  text: string;
+  image_url: string;
+}
+
+/** Word bank item for LISTEN_FILL */
+export interface WordBankItem {
+  id: string;
+  text: string;
+}
+
+export interface CompleteConversationData {
+  instruction: string;
+  text: string;
+  options: OptionText[];
+}
+
+export interface ArrangeWordsData {
+  instruction: string;
+  tokens: string[];
+}
+
+export interface CompleteTranslationData {
+  instruction: string;
+  source_sentence: string;
+  text_template: string;
+}
+
+export interface PictureMatchData {
+  instruction: string;
+  word: string;
+  options: OptionImage[];
+}
+
+export interface TypeHearData {
+  instruction: string;
+  text: string; // TTS source
+}
+
+export interface ListenFillData {
+  instruction: string;
+  word_bank: WordBankItem[];
+}
+
+export interface SpeakSentenceData {
+  instruction: string;
+  sentence: string;
+}
+
+export interface Exercise {
+  id: string;
+  lesson_id: string;
+  type: ExerciseType;
+  question_data:
+    | CompleteConversationData
+    | ArrangeWordsData
+    | CompleteTranslationData
+    | PictureMatchData
+    | TypeHearData
+    | ListenFillData
+    | SpeakSentenceData;
+}
+
+export interface ExerciseLessonPayload {
+  id: string;
+  unit_id: string;
+  lesson_form_id: string;
+  title: string;
+  order_index: number;
+  exercises: Exercise[];
+}
+
+export interface AnswerDetail {
+  exercise_id: string;
+  user_answer: string;
+  is_correct: boolean;
+  time_spent_ms: number;
+}
+
+export interface LessonSubmission {
+  answers: AnswerDetail[];
+  score: number;
+  hearts_left: number;
+  started_at?: string;
+  finished_at?: string;
+}
+
+export interface ProgressResponse {
+  xp_earned: number;
+  total_xp: number;
+  current_streak: number;
+  hearts: number;
+  gems: number;
 }

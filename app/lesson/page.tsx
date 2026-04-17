@@ -1,18 +1,18 @@
 import { redirect } from "next/navigation";
 
 import { api } from "@/lib/api";
-import type { LessonPayload, UserProgress } from "@/types/api";
+import type { ExerciseLessonPayload, UserProgress } from "@/types/api";
 
-import { Quiz } from "./quiz";
+import { ExerciseQuiz } from "./exercise-quiz";
 
-/** Active lesson shortcut — redirects to /lesson/{activeId} in practice */
+/** Active lesson shortcut — fetches the active lesson and renders ExerciseQuiz. */
 const LessonPage = async () => {
-  let lesson: LessonPayload | null = null;
+  let lesson: ExerciseLessonPayload | null = null;
   let userProgress: UserProgress | null = null;
 
   try {
     [lesson, userProgress] = await Promise.all([
-      api<LessonPayload>("/api/v1/lessons/active"),
+      api<ExerciseLessonPayload>("/api/v1/lessons/active/payload"),
       api<UserProgress>("/api/v1/users/me/progress"),
     ]);
   } catch {
@@ -21,17 +21,10 @@ const LessonPage = async () => {
 
   if (!lesson || !userProgress) redirect("/learn");
 
-  const initialPercentage =
-    (lesson.challenges.filter((c) => c.completed).length /
-      lesson.challenges.length) *
-    100;
-
   return (
-    <Quiz
-      initialLessonId={lesson.id}
-      initialLessonChallenges={lesson.challenges}
+    <ExerciseQuiz
+      lesson={lesson}
       initialHearts={userProgress.hearts}
-      initialPercentage={initialPercentage}
     />
   );
 };

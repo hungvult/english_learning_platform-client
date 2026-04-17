@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 import "react-circular-progressbar/dist/styles.css";
 
 type LessonButtonProps = {
-  id: number;
+  id: string;
   index: number;
   totalCount: number;
   locked?: boolean;
