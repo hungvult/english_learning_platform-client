@@ -17,21 +17,32 @@ export function ListenFill({ exerciseId, data, onAnswer, disabled }: Props) {
   const [selected, setSelected] = useState<Array<{ id: string; text: string }>>([]);
   const [submitted, setSubmitted] = useState(false);
 
-  const playAudio = async () => {
+  const playAudio = () => {
     if (playing) return;
-    setPlaying(true);
-    try {
-      const audio = new Audio(`/api/exercises/${exerciseId}/audio`);
-      audio.onended = () => setPlaying(false);
-      audio.onerror = () => {
-        setPlaying(false);
-        // Graceful degradation: if no audio file, show toast-like hint
-        console.warn("Audio unavailable for this exercise");
-      };
-      await audio.play();
-    } catch {
-      setPlaying(false);
+    
+    // Check if SpeechSynthesis is supported
+    if (!window.speechSynthesis) {
+      console.warn("Speech Synthesis is not supported in this browser.");
+      return;
     }
+    
+    setPlaying(true);
+    const utterance = new SpeechSynthesisUtterance(data.text);
+    utterance.lang = "en-US";
+    
+    // Slow down speech slightly for listening exercises
+    utterance.rate = 0.85;
+
+    utterance.onend = () => {
+      setPlaying(false);
+    };
+
+    utterance.onerror = (e) => {
+      console.error("Speech Synthesis Error", e);
+      setPlaying(false);
+    };
+
+    window.speechSynthesis.speak(utterance);
   };
 
   const available = data.word_bank.filter(

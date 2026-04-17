@@ -164,6 +164,7 @@ export interface TypeHearData {
 
 export interface ListenFillData {
   instruction: string;
+  text: string;
   word_bank: WordBankItem[];
 }
 
