@@ -366,9 +366,22 @@ export function ExerciseQuiz({ lesson, initialHearts }: ExerciseQuizProps) {
   }
 
   // ── Exercise screen ──────────────────────────────────────────────────────
-  const instructionText =
-    (currentExercise?.question_data as { instruction?: string })?.instruction ??
-    "Complete the exercise";
+  const getInstructionText = () => {
+    if (!currentExercise) return "Complete the exercise";
+    const type = currentExercise.type;
+    const qData = currentExercise.question_data as any;
+
+    switch (type) {
+      case "COMPLETE_CONVERSATION": return "Select the correct response";
+      case "ARRANGE_WORDS": return "Form the correct sentence";
+      case "COMPLETE_TRANSLATION": return "Translate this sentence";
+      case "PICTURE_MATCH": return `Which of these is the "${qData.word || 'word'}"?`;
+      case "TYPE_HEAR": return "Type what you hear";
+      case "LISTEN_FILL": return "Listen and select the words";
+      case "SPEAK_SENTENCE": return "Speak this sentence";
+      default: return "Complete the exercise";
+    }
+  };
 
   // Determine Ignore button props for Footer
   let ignoreLabel: string | undefined = undefined;
@@ -397,7 +410,7 @@ export function ExerciseQuiz({ lesson, initialHearts }: ExerciseQuizProps) {
 
           {/* Exercise title */}
           <h1 className="text-center text-lg font-bold text-neutral-700 lg:text-start lg:text-3xl">
-            {instructionText}
+            {getInstructionText()}
           </h1>
 
           {/* Exercise engine */}
