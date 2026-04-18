@@ -169,8 +169,6 @@ export interface ListenFillData {
 }
 
 export interface SpeakSentenceData {
-  instruction: string;
-  sentence: string;
 }
 
 export interface Exercise {

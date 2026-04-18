@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import type { SpeakSentenceData } from "@/types/api";
 
 type Props = {
-  data: SpeakSentenceData;
+  exercise: any; // We'll type this dynamically as Exercise from @/types/api
   onAnswer: (answer: string) => void;
   disabled?: boolean;
 };
@@ -21,7 +21,7 @@ const normalizeText = (text: string) => {
     .trim();
 };
 
-export function SpeakSentence({ data, onAnswer, disabled }: Props) {
+export function SpeakSentence({ exercise, onAnswer, disabled }: Props) {
   const [state, setState] = useState<RecordState>("idle");
   const [transcript, setTranscript] = useState<string>("");
   const mediaRef = useRef<MediaRecorder | null>(null);
@@ -121,7 +121,7 @@ export function SpeakSentence({ data, onAnswer, disabled }: Props) {
 
 
       <div className="flex flex-wrap items-center justify-center gap-1 rounded-xl border-2 border-slate-200 bg-slate-50 px-8 py-4 text-center text-xl font-bold text-neutral-700">
-        {data.sentence.split(" ").map((word, i) => {
+        {(exercise.answer_data?.expected_text || "").split(" ").map((word: string, i: number) => {
           const cleanWord = normalizeText(word);
           const spokenWords = normalizeText(transcript).split(" ").filter(w => w.length > 0);
           const isSpoken = spokenWords.includes(cleanWord);

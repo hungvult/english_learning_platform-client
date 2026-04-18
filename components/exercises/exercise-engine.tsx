@@ -102,7 +102,7 @@ export function ExerciseEngine({
     case "SPEAK_SENTENCE":
       return (
         <SpeakSentence
-          data={question_data as SpeakSentenceData}
+          exercise={exercise}
           {...commonProps}
         />
       );
