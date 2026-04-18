@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import type { CompleteTranslationData } from "@/types/api";
+import { useLocale } from "@/components/locale-provider";
 
 type Props = {
   data: CompleteTranslationData;
@@ -31,6 +32,7 @@ function parseTemplate(template: string): Array<{ type: "text" | "input"; index?
 }
 
 export function CompleteTranslation({ data, onAnswer, disabled }: Props) {
+  const { t } = useLocale();
   const segments = parseTemplate(data.text_template);
   const inputCount = segments.filter((s) => s.type === "input").length;
   const [values, setValues] = useState<string[]>(Array(inputCount).fill(""));
@@ -83,7 +85,7 @@ export function CompleteTranslation({ data, onAnswer, disabled }: Props) {
           (submitted || values.some((v) => !v.trim())) && "pointer-events-none opacity-60"
         )}
       >
-        {submitted ? "Submitted" : "Check"}
+        {submitted ? t.submitted : t.check}
       </button>
     </div>
   );

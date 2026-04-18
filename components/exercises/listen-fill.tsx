@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Volume2, X, Loader } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ListenFillData } from "@/types/api";
+import { useLocale } from "@/components/locale-provider";
 
 type Props = {
   exerciseId: string;
@@ -13,6 +14,7 @@ type Props = {
 };
 
 export function ListenFill({ exerciseId, data, onAnswer, disabled }: Props) {
+  const { t } = useLocale();
   const [playing, setPlaying] = useState(false);
   const [selected, setSelected] = useState<Array<{ id: string; text: string }>>([]);
   const [submitted, setSubmitted] = useState(false);
@@ -121,7 +123,7 @@ export function ListenFill({ exerciseId, data, onAnswer, disabled }: Props) {
           (submitted || selected.length === 0) && "pointer-events-none opacity-60"
         )}
       >
-        {submitted ? "Submitted" : "Check"}
+        {submitted ? t.submitted : t.check}
       </button>
     </div>
   );

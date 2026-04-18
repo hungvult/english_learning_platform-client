@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { MAX_HEARTS } from "@/constants";
 import { api } from "@/lib/api";
 import { usePreferences } from "@/store/use-preferences";
+import { useLocale } from "@/components/locale-provider";
 import type {
   Exercise,
   ExerciseLessonPayload,
@@ -83,6 +84,7 @@ export function ExerciseQuiz({ lesson, initialHearts }: ExerciseQuizProps) {
   const { width, height } = useWindowSize();
   const [pending, startTransition] = useTransition();
   const { isListeningIgnored, isSpeakingIgnored, ignoreListeningFor15Min, ignoreSpeakingFor15Min } = usePreferences();
+  const { t } = useLocale();
 
   // Lesson clock
   const [startedAt] = useState(() => new Date().toISOString());
@@ -149,12 +151,12 @@ export function ExerciseQuiz({ lesson, initialHearts }: ExerciseQuizProps) {
     if (needsListen) {
       ignoreListeningFor15Min();
       setDynamicQueue(prev => prev.filter((ex, i) => i <= activeIndex || (ex.type !== "TYPE_HEAR" && ex.type !== "LISTEN_FILL")));
-      setSkippedMessage("Listening exercises disabled for 15 minutes.");
+      setSkippedMessage(t.listeningDisabled);
       handleAnswer("__SKIPPED__");
     } else if (needsSpeak) {
       ignoreSpeakingFor15Min();
       setDynamicQueue(prev => prev.filter((ex, i) => i <= activeIndex || ex.type !== "SPEAK_SENTENCE"));
-      setSkippedMessage("Speaking exercises disabled for 15 minutes.");
+      setSkippedMessage(t.speakingDisabled);
       handleAnswer("__SKIPPED__");
     }
   }
@@ -168,7 +170,7 @@ export function ExerciseQuiz({ lesson, initialHearts }: ExerciseQuizProps) {
     // Offline fallback / explicitly skipped
     if (rawAnswer === "__SKIPPED__" || rawAnswer === "__NO_STT__") {
       if (!skippedMessage && rawAnswer === "__NO_STT__") {
-        setSkippedMessage("Voice recognition unavailable.");
+        setSkippedMessage(t.voiceUnavailable);
       }
       // Set to warning if it's NO_STT because the user might just have an error, but spec asks for fail gracefully.
       // We'll leave it as skipped.
@@ -220,12 +222,12 @@ export function ExerciseQuiz({ lesson, initialHearts }: ExerciseQuizProps) {
            const newTries = speakTries + 1;
            if (newTries < 3) {
               setSpeakTries(newTries);
-              setSkippedMessage(`Hmm... Try again.`);
+              setSkippedMessage(t.hmmTryAgain);
               setFeedbackStatus("warning");
               return; // Do not log answer correctly down below just yet
            }
            setSpeakTries(0);
-           setSkippedMessage("Let's Move On.");
+           setSkippedMessage(t.letsMove);
         } else {
            setSkippedMessage(undefined);
         }
@@ -234,7 +236,7 @@ export function ExerciseQuiz({ lesson, initialHearts }: ExerciseQuizProps) {
         setFeedbackStatus("wrong");
       }
     } catch {
-      toast.error("Validation failed.");
+      toast.error(t.validationFailed);
       setCurrentRawAnswer(undefined);
     }
   };
@@ -315,7 +317,7 @@ export function ExerciseQuiz({ lesson, initialHearts }: ExerciseQuizProps) {
         );
         setProgressResult(result);
       } catch {
-        toast.error("Failed to save progress. Please retry.");
+        toast.error(t.failedToSaveProgressRetry);
       }
     });
   };
@@ -337,18 +339,18 @@ export function ExerciseQuiz({ lesson, initialHearts }: ExerciseQuizProps) {
         <div className="mx-auto flex h-full max-w-lg flex-col items-center justify-center gap-y-6 text-center px-4 py-10">
           <Image src="/finish.svg" alt="Finish" height={100} width={100} />
           <h1 className="text-2xl font-bold text-neutral-700 lg:text-3xl">
-            Great job! <br /> You&apos;ve completed the lesson.
+            {t.greatJob} <br /> {t.lessonComplete}
           </h1>
 
           {/* Score */}
           <div className="flex w-full items-center justify-center gap-x-6">
             <div className="flex flex-col items-center rounded-xl border-2 border-yellow-400 bg-yellow-50 px-6 py-3">
               <span className="text-2xl font-bold text-yellow-500">{score}</span>
-              <span className="text-xs font-semibold uppercase text-yellow-400">Score</span>
+              <span className="text-xs font-semibold uppercase text-yellow-400">{t.score}</span>
             </div>
             <div className="flex flex-col items-center rounded-xl border-2 border-rose-400 bg-rose-50 px-6 py-3">
               <span className="text-2xl font-bold text-rose-500">{hearts}</span>
-              <span className="text-xs font-semibold uppercase text-rose-400">Hearts</span>
+              <span className="text-xs font-semibold uppercase text-rose-400">{t.hearts}</span>
             </div>
             {progressResult && (
               <div className="flex flex-col items-center rounded-xl border-2 border-green-400 bg-green-50 px-6 py-3">
@@ -362,7 +364,7 @@ export function ExerciseQuiz({ lesson, initialHearts }: ExerciseQuizProps) {
             onClick={() => router.push("/learn")}
             className="w-full rounded-xl border-b-4 border-green-600 bg-green-500 py-3 font-bold text-white transition hover:bg-green-400"
           >
-            Continue
+            {t.continue}
           </button>
         </div>
       </>
@@ -371,19 +373,19 @@ export function ExerciseQuiz({ lesson, initialHearts }: ExerciseQuizProps) {
 
   // ── Exercise screen ──────────────────────────────────────────────────────
   const getInstructionText = () => {
-    if (!currentExercise) return "Complete the exercise";
+    if (!currentExercise) return t.completeExercise;
     const type = currentExercise.type;
     const qData = currentExercise.question_data as any;
 
     switch (type) {
-      case "COMPLETE_CONVERSATION": return "Select the correct response";
-      case "ARRANGE_WORDS": return "Form the correct sentence";
-      case "COMPLETE_TRANSLATION": return "Translate this sentence";
-      case "PICTURE_MATCH": return `Which of these is the "${qData.word || 'word'}"?`;
-      case "TYPE_HEAR": return "Type what you hear";
-      case "LISTEN_FILL": return "Listen and select the words";
-      case "SPEAK_SENTENCE": return "Speak this sentence";
-      default: return "Complete the exercise";
+      case "COMPLETE_CONVERSATION": return t.selectCorrectResponse;
+      case "ARRANGE_WORDS": return t.formCorrectSentence;
+      case "COMPLETE_TRANSLATION": return t.translateSentence;
+      case "PICTURE_MATCH": return t.whichIs(qData.word || "word");
+      case "TYPE_HEAR": return t.typeWhatYouHear;
+      case "LISTEN_FILL": return t.listenSelectWords;
+      case "SPEAK_SENTENCE": return t.speakSentence;
+      default: return t.completeExercise;
     }
   };
 
@@ -393,10 +395,10 @@ export function ExerciseQuiz({ lesson, initialHearts }: ExerciseQuizProps) {
   
   if (mounted) {
     if (!isListeningIgnored() && (currentExercise?.type === "TYPE_HEAR" || currentExercise?.type === "LISTEN_FILL")) {
-      ignoreLabel = "Can't listen now";
+      ignoreLabel = t.cantListenNow;
       onIgnore = handleIgnore;
     } else if (!isSpeakingIgnored() && currentExercise?.type === "SPEAK_SENTENCE") {
-      ignoreLabel = "Can't speak now";
+      ignoreLabel = t.cantSpeakNow;
       onIgnore = handleIgnore;
     }
   }

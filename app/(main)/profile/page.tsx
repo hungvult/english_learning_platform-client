@@ -11,10 +11,12 @@ import { UserProgress } from "@/components/user-progress";
 import { StickyWrapper } from "@/components/sticky-wrapper";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { useLocale } from "@/components/locale-provider";
 import { UserProfile, UserProgress as UserProgressType } from "@/types/api";
 
 const ProfilePage = () => {
   const router = useRouter();
+  const { t } = useLocale();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [userProgress, setUserProgress] = useState<UserProgressType | null>(null);
   const [loading, setLoading] = useState(true);
@@ -45,7 +47,7 @@ const ProfilePage = () => {
           cefr_level: profileData.cefr_level || "",
         });
       } catch (error) {
-        toast.error("Failed to load profile");
+        toast.error(t.failedToLoadProfile);
       } finally {
         setLoading(false);
       }
@@ -58,7 +60,7 @@ const ProfilePage = () => {
     e.preventDefault();
 
     if (formData.password && formData.password !== formData.confirmPassword) {
-      toast.error("Passwords do not match");
+      toast.error(t.passwordsDoNotMatch);
       return;
     }
 
@@ -82,9 +84,9 @@ const ProfilePage = () => {
 
       setProfile(updatedProfile);
       setFormData((prev) => ({ ...prev, password: "", confirmPassword: "" }));
-      toast.success("Profile updated successfully");
+      toast.success(t.profileUpdated);
     } catch (error: any) {
-      toast.error(error.message || "Failed to update profile");
+      toast.error(error.message || t.failedToUpdateProfile);
     } finally {
       setUpdating(false);
     }
@@ -97,14 +99,14 @@ const ProfilePage = () => {
       router.refresh();
     } catch (error) {
       console.error("Logout failed", error);
-      toast.error("Logout failed");
+      toast.error(t.logoutFailed);
     }
   };
 
   if (loading) {
     return (
         <div className="flex h-full w-full items-center justify-center">
-            <span className="text-muted-foreground">Loading...</span>
+            <span className="text-muted-foreground">{t.loading}</span>
         </div>
     );
   }
@@ -131,8 +133,8 @@ const ProfilePage = () => {
               width={80}
             />
             <div>
-                <h1 className="text-2xl font-bold text-neutral-700">Settings</h1>
-                <p className="text-muted-foreground">Manage your account and preferences.</p>
+                <h1 className="text-2xl font-bold text-neutral-700">{t.settings}</h1>
+                <p className="text-muted-foreground">{t.manageAccount}</p>
             </div>
           </div>
 
@@ -140,7 +142,7 @@ const ProfilePage = () => {
 
           <form onSubmit={onUpdate} className="flex w-full flex-col gap-y-4">
             <div className="flex flex-col gap-y-2">
-              <label className="text-sm font-bold text-neutral-600">Username</label>
+              <label className="text-sm font-bold text-neutral-600">{t.username}</label>
               <input
                 className="rounded-xl border-2 border-b-4 bg-neutral-100 p-3 outline-none focus:border-green-600 active:border-b-2"
                 value={formData.username}
@@ -150,7 +152,7 @@ const ProfilePage = () => {
             </div>
 
             <div className="flex flex-col gap-y-2">
-              <label className="text-sm font-bold text-neutral-600">Email</label>
+              <label className="text-sm font-bold text-neutral-600">{t.email}</label>
               <input
                 type="email"
                 className="rounded-xl border-2 border-b-4 bg-neutral-100 p-3 outline-none focus:border-green-600 active:border-b-2"
@@ -161,13 +163,13 @@ const ProfilePage = () => {
             </div>
 
             <div className="flex flex-col gap-y-2">
-              <label className="text-sm font-bold text-neutral-600">CEFR Level</label>
+              <label className="text-sm font-bold text-neutral-600">{t.cefrLevel}</label>
               <select
                 className="rounded-xl border-2 border-b-4 bg-neutral-100 p-3 outline-none focus:border-green-600 active:border-b-2"
                 value={formData.cefr_level}
                 onChange={(e) => setFormData({ ...formData, cefr_level: e.target.value })}
               >
-                <option value="">Select Level</option>
+                <option value="">{t.selectLevel}</option>
                 <option value="A1">A1 - Junior</option>
                 <option value="A2">A2 - Elementary</option>
                 <option value="B1">B1 - Intermediate</option>
@@ -178,7 +180,7 @@ const ProfilePage = () => {
             </div>
 
             <div className="flex flex-col gap-y-2">
-                <label className="text-sm font-bold text-neutral-600">New Password (leave blank to keep current)</label>
+                <label className="text-sm font-bold text-neutral-600">{t.newPassword}</label>
                 <input
                     type="password"
                     autoComplete="new-password"
@@ -189,7 +191,7 @@ const ProfilePage = () => {
             </div>
 
             <div className="flex flex-col gap-y-2">
-                <label className="text-sm font-bold text-neutral-600">Confirm Password</label>
+                <label className="text-sm font-bold text-neutral-600">{t.confirmPassword}</label>
                 <input
                     type="password"
                     autoComplete="new-password"
@@ -206,7 +208,7 @@ const ProfilePage = () => {
                 className="w-full mt-4"
                 variant="secondary"
             >
-                {updating ? "Saving..." : "Save Changes"}
+                {updating ? t.saving : t.saveChanges}
             </Button>
 
             <Separator className="my-4" />
@@ -218,7 +220,7 @@ const ProfilePage = () => {
                 variant="danger"
                 className="w-full"
             >
-                Sign out
+                {t.signOut}
             </Button>
           </form>
         </div>

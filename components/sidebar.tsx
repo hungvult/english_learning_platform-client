@@ -1,12 +1,10 @@
 "use client";
 
-import { LogOut } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
 import { cn } from "@/lib/utils";
-import { api } from "@/lib/api";
+import { useLocale } from "@/components/locale-provider";
 
 import { SidebarItem } from "./sidebar-item";
 
@@ -15,6 +13,8 @@ type SidebarProps = {
 };
 
 export const Sidebar = ({ className }: SidebarProps) => {
+  const { t } = useLocale();
+
   return (
     <div
       className={cn(
@@ -33,8 +33,8 @@ export const Sidebar = ({ className }: SidebarProps) => {
       </Link>
 
       <div className="flex flex-1 flex-col gap-y-2">
-        <SidebarItem label="Learn" href="/learn" iconSrc="/learn.svg" />
-        <SidebarItem label="Profile" href="/profile" iconSrc="/profile.svg" />
+        <SidebarItem label={t.learn} href="/learn" iconSrc="/learn.svg" />
+        <SidebarItem label={t.profile} href="/profile" iconSrc="/profile.svg" />
       </div>
     </div>
   );

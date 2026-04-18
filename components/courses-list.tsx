@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import { api } from "@/lib/api";
 import { CourseCard } from "@/components/course-card";
+import { useLocale } from "@/components/locale-provider";
 
 type CourseComp = {
   id: string;
@@ -21,6 +22,7 @@ type CoursesListProps = {
 export const CoursesList = ({ courses, activeCourseId }: CoursesListProps) => {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const { t } = useLocale();
 
   const onClick = (id: string) => {
     if (pending) return;
@@ -34,11 +36,11 @@ export const CoursesList = ({ courses, activeCourseId }: CoursesListProps) => {
         await api(`/api/v1/courses/select?course_id=${id}`, {
           method: "PATCH",
         });
-        toast.success("Course selected");
+        toast.success(t.courseSelected);
         router.push("/learn");
         router.refresh();
       } catch (error) {
-        toast.error("Something went wrong");
+        toast.error(t.somethingWentWrong);
       }
     });
   };
@@ -51,7 +53,7 @@ export const CoursesList = ({ courses, activeCourseId }: CoursesListProps) => {
       {currentlyLearning.length > 0 && (
         <section className="mt-10">
           <h1 className="text-2xl font-bold text-neutral-700">
-            Currently Learning
+            {t.currentlyLearning}
           </h1>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mt-6">
             {currentlyLearning.map((course) => (
@@ -71,7 +73,7 @@ export const CoursesList = ({ courses, activeCourseId }: CoursesListProps) => {
 
       <section className="mt-10">
         <h1 className="text-2xl font-bold text-neutral-700">
-          Continue Learning
+          {t.continueLearning}
         </h1>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mt-6">
           {otherCourses.map((course) => (
@@ -89,13 +91,13 @@ export const CoursesList = ({ courses, activeCourseId }: CoursesListProps) => {
 
       <section className="mt-10">
         <h1 className="text-2xl font-bold text-neutral-700">
-          Add course
+          {t.addCourse}
         </h1>
         {/* For now, just showing all courses. In a real app we might distinguish available from joined. */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mt-6">
            {/* Mocking some samples to match the screenshot if needed, or just relying on real data. */}
            {otherCourses.length === 0 && (
-             <p className="text-neutral-500 italic">No other courses available.</p>
+             <p className="text-neutral-500 italic">{t.noOtherCourses}</p>
            )}
         </div>
       </section>
