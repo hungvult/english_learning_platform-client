@@ -161,12 +161,6 @@ export function SpeakSentence({ exercise, onAnswer, disabled }: Props) {
         <p className="text-sm text-red-500 animate-pulse">Recording… tap to stop</p>
       )}
 
-      {transcript && (
-        <p className="text-sm text-neutral-500">
-          You said: <span className="font-medium text-neutral-700">{transcript}</span>
-        </p>
-      )}
-
       {state === "idle" && !transcript && (
         <p className="text-xs text-muted-foreground">
           {navigator.onLine ? "Tap the mic to start" : "Offline — this exercise will be skipped"}
