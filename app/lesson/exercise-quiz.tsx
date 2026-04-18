@@ -109,7 +109,8 @@ export function ExerciseQuiz({ lesson, initialHearts }: ExerciseQuizProps) {
   const [finished, setFinished] = useState(false);
   const [progressResult, setProgressResult] = useState<ProgressResponse | null>(null);
 
-  const percentage = Math.round((activeIndex / lesson.exercises.length) * 100);
+  const extraExercises = dynamicQueue.length - lesson.exercises.length;
+  const percentage = Math.min(100, Math.round(((activeIndex - extraExercises) / lesson.exercises.length) * 100));
   const currentExercise = dynamicQueue[activeIndex];
   const [mounted, setMounted] = useState(false);
 
@@ -117,21 +118,26 @@ export function ExerciseQuiz({ lesson, initialHearts }: ExerciseQuizProps) {
     setMounted(true);
   }, []);
 
-  // Auto-skip logic for ignored modalities
+  // Initialize un-ignored queue on mount to prevent flashing
   useEffect(() => {
-    if (!currentExercise || feedbackStatus !== "none" || !mounted) return;
-    const type = currentExercise.type;
-    const needsListen = type === "TYPE_HEAR" || type === "LISTEN_FILL";
-    const needsSpeak = type === "SPEAK_SENTENCE";
-
-    if ((needsListen && isListeningIgnored())) {
-      setSkippedMessage("Listening exercises are disabled for 15 minutes.");
-      setTimeout(() => handleAnswer("__SKIPPED__"), 50);
-    } else if ((needsSpeak && isSpeakingIgnored())) {
-      setSkippedMessage("Speaking exercises are disabled for 15 minutes.");
-      setTimeout(() => handleAnswer("__SKIPPED__"), 50);
+    if (mounted && activeIndex === 0 && answers.length === 0) {
+      const filtered = lesson.exercises.filter((ex) => {
+        const needsListen = ex.type === "TYPE_HEAR" || ex.type === "LISTEN_FILL";
+        const needsSpeak = ex.type === "SPEAK_SENTENCE";
+        if (needsListen && isListeningIgnored()) return false;
+        if (needsSpeak && isSpeakingIgnored()) return false;
+        return true;
+      });
+      if (filtered.length < lesson.exercises.length) {
+        setDynamicQueue(filtered as Exercise[]);
+        // If entirely empty because all were disabled
+        if (filtered.length === 0) {
+          submitLesson([]);
+          setFinished(true);
+        }
+      }
     }
-  }, [currentExercise, feedbackStatus, mounted, isListeningIgnored, isSpeakingIgnored]);
+  }, [mounted, isListeningIgnored, isSpeakingIgnored, lesson.exercises]);
 
   // Handle explicitly clicking the "skip" inline button
   function handleIgnore() {
@@ -141,17 +147,15 @@ export function ExerciseQuiz({ lesson, initialHearts }: ExerciseQuizProps) {
     const needsSpeak = type === "SPEAK_SENTENCE";
 
     if (needsListen) {
-      if (confirm("Disable listening tasks for 15 minutes?")) {
-        ignoreListeningFor15Min();
-        setSkippedMessage("Listening exercises disabled for 15 minutes.");
-        handleAnswer("__SKIPPED__");
-      }
+      ignoreListeningFor15Min();
+      setDynamicQueue(prev => prev.filter((ex, i) => i <= activeIndex || (ex.type !== "TYPE_HEAR" && ex.type !== "LISTEN_FILL")));
+      setSkippedMessage("Listening exercises disabled for 15 minutes.");
+      handleAnswer("__SKIPPED__");
     } else if (needsSpeak) {
-      if (confirm("Disable speaking tasks for 15 minutes?")) {
-        ignoreSpeakingFor15Min();
-        setSkippedMessage("Speaking exercises disabled for 15 minutes.");
-        handleAnswer("__SKIPPED__");
-      }
+      ignoreSpeakingFor15Min();
+      setDynamicQueue(prev => prev.filter((ex, i) => i <= activeIndex || ex.type !== "SPEAK_SENTENCE"));
+      setSkippedMessage("Speaking exercises disabled for 15 minutes.");
+      handleAnswer("__SKIPPED__");
     }
   }
 
@@ -403,10 +407,6 @@ export function ExerciseQuiz({ lesson, initialHearts }: ExerciseQuizProps) {
 
       <div className="flex-1 overflow-y-auto">
         <div className="mx-auto flex h-full max-w-[600px] flex-col gap-y-8 px-6 py-10 lg:px-0">
-          {/* Exercise index indicator */}
-          <p className="text-sm text-muted-foreground text-right">
-            {activeIndex + 1} / {dynamicQueue.length}
-          </p>
 
           {/* Exercise title */}
           <h1 className="text-center text-lg font-bold text-neutral-700 lg:text-start lg:text-3xl">
@@ -416,7 +416,7 @@ export function ExerciseQuiz({ lesson, initialHearts }: ExerciseQuizProps) {
           {/* Exercise engine */}
           <div>
             <ExerciseEngine
-              key={currentExercise.id} // remount on exercise change
+              key={`${currentExercise.id}-${activeIndex}`} // remount on exercise attempt change
               exercise={currentExercise}
               disabled={feedbackStatus !== "none"}
               onComplete={handleAnswer}
