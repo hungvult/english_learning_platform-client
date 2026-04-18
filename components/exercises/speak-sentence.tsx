@@ -118,7 +118,7 @@ export function SpeakSentence({ data, onAnswer, disabled }: Props) {
 
   return (
     <div className="flex flex-col items-center gap-y-6">
-      <p className="text-sm text-muted-foreground">{data.instruction}</p>
+
 
       <div className="flex flex-wrap items-center justify-center gap-1 rounded-xl border-2 border-slate-200 bg-slate-50 px-8 py-4 text-center text-xl font-bold text-neutral-700">
         {data.sentence.split(" ").map((word, i) => {

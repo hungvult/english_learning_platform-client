@@ -39,7 +39,7 @@ export function ArrangeWords({ data, onAnswer, disabled }: Props) {
 
   return (
     <div className="flex flex-col gap-y-4">
-      <p className="text-sm text-muted-foreground">{data.instruction}</p>
+
 
       {/* Drop zone */}
       <div className="min-h-[56px] rounded-xl border-2 border-dashed border-slate-300 p-2 flex flex-wrap gap-2">

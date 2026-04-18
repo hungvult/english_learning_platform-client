@@ -50,7 +50,7 @@ export function CompleteTranslation({ data, onAnswer, disabled }: Props) {
 
   return (
     <div className="flex flex-col gap-y-4">
-      <p className="text-sm text-muted-foreground">{data.instruction}</p>
+
       <div className="rounded-xl border-2 border-slate-200 bg-slate-50 px-4 py-3 text-center text-neutral-600 italic">
         {data.source_sentence}
       </div>

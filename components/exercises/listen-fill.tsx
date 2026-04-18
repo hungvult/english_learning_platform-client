@@ -67,7 +67,7 @@ export function ListenFill({ exerciseId, data, onAnswer, disabled }: Props) {
 
   return (
     <div className="flex flex-col gap-y-4">
-      <p className="text-sm text-muted-foreground">{data.instruction}</p>
+
 
       {/* Audio play button */}
       <div className="flex justify-center">
