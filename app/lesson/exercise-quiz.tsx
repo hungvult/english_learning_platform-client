@@ -67,6 +67,14 @@ type ExerciseQuizProps = {
   initialHearts: number;
 };
 
+export const normalizeText = (text: string) => {
+  return String(text || "")
+    .toLowerCase()
+    .replace(/[^\w\s\']/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+};
+
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
@@ -91,10 +99,11 @@ export function ExerciseQuiz({ lesson, initialHearts }: ExerciseQuizProps) {
   const [dynamicQueue, setDynamicQueue] = useState<Exercise[]>(lesson.exercises as Exercise[]);
 
   // Per-question feedback
-  const [feedbackStatus, setFeedbackStatus] = useState<"none" | "correct" | "wrong" | "skipped">("none");
+  const [feedbackStatus, setFeedbackStatus] = useState<"none" | "correct" | "wrong" | "skipped" | "warning">("none");
   const [currentRawAnswer, setCurrentRawAnswer] = useState<unknown>(undefined);
   const [correctAnswerText, setCorrectAnswerText] = useState<string | undefined>();
   const [skippedMessage, setSkippedMessage] = useState<string | undefined>();
+  const [speakTries, setSpeakTries] = useState(0);
 
   // Lesson finished
   const [finished, setFinished] = useState(false);
@@ -122,33 +131,34 @@ export function ExerciseQuiz({ lesson, initialHearts }: ExerciseQuizProps) {
       setSkippedMessage("Speaking exercises are disabled for 15 minutes.");
       setTimeout(() => handleAnswer("__SKIPPED__"), 50);
     }
-  }, [currentExercise, feedbackStatus, isListeningIgnored, isSpeakingIgnored, mounted]);
+  }, [currentExercise, feedbackStatus, mounted, isListeningIgnored, isSpeakingIgnored]);
 
-  // Determine Ignore button props for Footer
-  let ignoreLabel: string | undefined = undefined;
-  let onIgnore: (() => void) | undefined = undefined;
-  
-  if (mounted) {
-    if (!isListeningIgnored() && (currentExercise?.type === "TYPE_HEAR" || currentExercise?.type === "LISTEN_FILL")) {
-      ignoreLabel = "Can't listen now";
-      onIgnore = () => {
+  // Handle explicitly clicking the "skip" inline button
+  function handleIgnore() {
+    if (!currentExercise) return;
+    const type = currentExercise.type;
+    const needsListen = type === "TYPE_HEAR" || type === "LISTEN_FILL";
+    const needsSpeak = type === "SPEAK_SENTENCE";
+
+    if (needsListen) {
+      if (confirm("Disable listening tasks for 15 minutes?")) {
         ignoreListeningFor15Min();
         setSkippedMessage("Listening exercises disabled for 15 minutes.");
         handleAnswer("__SKIPPED__");
-      };
-    } else if (!isSpeakingIgnored() && currentExercise?.type === "SPEAK_SENTENCE") {
-      ignoreLabel = "Can't speak now";
-      onIgnore = () => {
+      }
+    } else if (needsSpeak) {
+      if (confirm("Disable speaking tasks for 15 minutes?")) {
         ignoreSpeakingFor15Min();
         setSkippedMessage("Speaking exercises disabled for 15 minutes.");
         handleAnswer("__SKIPPED__");
-      };
+      }
     }
   }
 
   // ── Answer received from ExerciseEngine sub-component ──────────────────
   const handleAnswer = async (rawAnswer: unknown) => {
-    if (feedbackStatus !== "none") return; // already answered this question
+    // Only block if already correct or skipped (allow 'warning' to be re-evaluated)
+    if (feedbackStatus === "correct" || feedbackStatus === "skipped" || feedbackStatus === "wrong") return;
     setCurrentRawAnswer(rawAnswer);
 
     // Offline fallback / explicitly skipped
@@ -156,6 +166,8 @@ export function ExerciseQuiz({ lesson, initialHearts }: ExerciseQuizProps) {
       if (!skippedMessage && rawAnswer === "__NO_STT__") {
         setSkippedMessage("Voice recognition unavailable.");
       }
+      // Set to warning if it's NO_STT because the user might just have an error, but spec asks for fail gracefully.
+      // We'll leave it as skipped.
       setFeedbackStatus("skipped");
       return;
     }
@@ -175,14 +187,14 @@ export function ExerciseQuiz({ lesson, initialHearts }: ExerciseQuizProps) {
       } else if (type === "COMPLETE_TRANSLATION") {
         const correct = answerData.correct_words || [];
         if (Array.isArray(rawAnswer)) {
-          isCorrect = JSON.stringify(rawAnswer.map((w: string) => w.trim().toLowerCase())) === 
-                     JSON.stringify(correct.map((w: string) => w.trim().toLowerCase()));
+          isCorrect = JSON.stringify(rawAnswer.map((w: string) => normalizeText(w))) === 
+                     JSON.stringify(correct.map((w: string) => normalizeText(w)));
         }
       } else if (type === "PICTURE_MATCH") {
         isCorrect = String(rawAnswer) === String(answerData.correct_option_id || "");
       } else if (type === "TYPE_HEAR") {
         const correct = answerData.correct_transcription || "";
-        isCorrect = String(rawAnswer).trim().toLowerCase() === correct.trim().toLowerCase();
+        isCorrect = normalizeText(String(rawAnswer)) === normalizeText(correct);
       } else if (type === "LISTEN_FILL") {
         const correct = answerData.correct_sequence_ids || [];
         if (Array.isArray(rawAnswer)) {
@@ -190,12 +202,29 @@ export function ExerciseQuiz({ lesson, initialHearts }: ExerciseQuizProps) {
         }
       } else if (type === "SPEAK_SENTENCE") {
         const expected = answerData.expected_text || "";
-        isCorrect = String(rawAnswer).trim().toLowerCase() === expected.trim().toLowerCase();
+        const expectedWords = normalizeText(expected).split(" ").filter(w => w.length > 0);
+        const spokenWords = normalizeText(String(rawAnswer)).split(" ").filter(w => w.length > 0);
+        const matchedWordsCount = expectedWords.filter(w => spokenWords.includes(w)).length;
+        isCorrect = matchedWordsCount >= Math.ceil(expectedWords.length / 2);
       }
 
       if (isCorrect) {
+        setSpeakTries(0);
         setFeedbackStatus("correct");
       } else {
+        if (type === "SPEAK_SENTENCE") {
+           const newTries = speakTries + 1;
+           if (newTries < 3) {
+              setSpeakTries(newTries);
+              setSkippedMessage(`Hmm... Try again.`);
+              setFeedbackStatus("warning");
+              return; // Do not log answer correctly down below just yet
+           }
+           setSpeakTries(0);
+           setSkippedMessage("Let's Move On.");
+        } else {
+           setSkippedMessage(undefined);
+        }
         const correctStr = getCorrectAnswerString(currentExercise, answerData);
         setCorrectAnswerText(correctStr);
         setFeedbackStatus("wrong");
@@ -209,6 +238,14 @@ export function ExerciseQuiz({ lesson, initialHearts }: ExerciseQuizProps) {
   // ── Footer "Check / Next / Retry" ──────────────────────────────────────
   const handleContinue = () => {
     if (feedbackStatus === "none") return;
+
+    // If we are in a warning state (retry loop), reset feedback to allow re-input
+    if (feedbackStatus === "warning") {
+      setFeedbackStatus("none");
+      setCurrentRawAnswer(undefined);
+      setSkippedMessage(undefined);
+      return;
+    }
 
     const isSkipped = feedbackStatus === "skipped";
 
@@ -333,6 +370,20 @@ export function ExerciseQuiz({ lesson, initialHearts }: ExerciseQuizProps) {
     (currentExercise?.question_data as { instruction?: string })?.instruction ??
     "Complete the exercise";
 
+  // Determine Ignore button props for Footer
+  let ignoreLabel: string | undefined = undefined;
+  let onIgnore: (() => void) | undefined = undefined;
+  
+  if (mounted) {
+    if (!isListeningIgnored() && (currentExercise?.type === "TYPE_HEAR" || currentExercise?.type === "LISTEN_FILL")) {
+      ignoreLabel = "Can't listen now";
+      onIgnore = handleIgnore;
+    } else if (!isSpeakingIgnored() && currentExercise?.type === "SPEAK_SENTENCE") {
+      ignoreLabel = "Can't speak now";
+      onIgnore = handleIgnore;
+    }
+  }
+
   return (
     <>
       <Header hearts={hearts} percentage={percentage} />
@@ -368,6 +419,7 @@ export function ExerciseQuiz({ lesson, initialHearts }: ExerciseQuizProps) {
         correctAnswerText={correctAnswerText}
         onIgnore={onIgnore}
         ignoreLabel={ignoreLabel}
+        skippedMessage={skippedMessage}
       />
     </>
   );

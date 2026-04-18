@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Mic, Square, LoaderCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { SpeakSentenceData } from "@/types/api";
@@ -13,12 +13,29 @@ type Props = {
 
 type RecordState = "idle" | "recording" | "processing" | "done";
 
+const normalizeText = (text: string) => {
+  return String(text || "")
+    .toLowerCase()
+    .replace(/[^\w\s\']/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+};
+
 export function SpeakSentence({ data, onAnswer, disabled }: Props) {
   const [state, setState] = useState<RecordState>("idle");
   const [transcript, setTranscript] = useState<string>("");
   const mediaRef = useRef<MediaRecorder | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const recognitionRef = useRef<any>(null);
+  const currentTranscriptRef = useRef<string>("");
+
+  useEffect(() => {
+    if (!disabled && state === "done") {
+      setState("idle");
+      setTranscript("");
+      currentTranscriptRef.current = "";
+    }
+  }, [disabled, state]);
 
   const startRecording = async () => {
     if (disabled || state !== "idle") return;
@@ -42,17 +59,18 @@ export function SpeakSentence({ data, onAnswer, disabled }: Props) {
         const recognition = new SpeechRecognition() as any;
         recognitionRef.current = recognition;
         recognition.lang = "en-US";
-        recognition.interimResults = false;
+        recognition.interimResults = true;
 
         let resultCaptured = false;
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         recognition.onresult = (event: any) => {
           resultCaptured = true;
-          const result = event.results[0][0].transcript;
+          const result = Array.from(event.results)
+            .map((res: any) => res[0].transcript)
+            .join("");
           setTranscript(result);
-          setState("done");
-          onAnswer(result);
+          currentTranscriptRef.current = result;
         };
 
         recognition.onerror = () => {
@@ -60,10 +78,11 @@ export function SpeakSentence({ data, onAnswer, disabled }: Props) {
         };
 
         recognition.onend = () => {
+          setState("done");
           if (!resultCaptured) {
-            // User stopped mic but no transcript found. We just skip or fail gracefully.
-            setState("done");
             onAnswer("");
+          } else {
+            onAnswer(currentTranscriptRef.current);
           }
         };
 
@@ -101,8 +120,17 @@ export function SpeakSentence({ data, onAnswer, disabled }: Props) {
     <div className="flex flex-col items-center gap-y-6">
       <p className="text-sm text-muted-foreground">{data.instruction}</p>
 
-      <div className="rounded-xl border-2 border-slate-200 bg-slate-50 px-8 py-4 text-center text-xl font-bold text-neutral-700">
-        {data.sentence}
+      <div className="flex flex-wrap items-center justify-center gap-1 rounded-xl border-2 border-slate-200 bg-slate-50 px-8 py-4 text-center text-xl font-bold text-neutral-700">
+        {data.sentence.split(" ").map((word, i) => {
+          const cleanWord = normalizeText(word);
+          const spokenWords = normalizeText(transcript).split(" ").filter(w => w.length > 0);
+          const isSpoken = spokenWords.includes(cleanWord);
+          return (
+            <span key={i} className={isSpoken ? "text-sky-500 transition-colors" : "transition-colors"}>
+              {word}
+            </span>
+          );
+        })}
       </div>
 
       {/* Record button */}

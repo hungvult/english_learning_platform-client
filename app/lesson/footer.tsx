@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 
 type FooterProps = {
   onCheck: () => void;
-  status: "correct" | "wrong" | "none" | "completed" | "skipped";
+  status: "correct" | "wrong" | "none" | "completed" | "skipped" | "warning";
   disabled?: boolean;
   lessonId?: number;
   correctAnswerText?: string;
@@ -42,7 +42,7 @@ export const Footer = ({
         "h-[100px] border-t-2 lg:h-[140px]",
         status === "correct" && "border-transparent bg-green-100",
         status === "wrong" && "border-transparent bg-rose-100",
-        status === "skipped" && "border-transparent bg-yellow-100"
+        (status === "skipped" || status === "warning") && "border-transparent bg-yellow-100"
       )}
     >
       <div className="mx-auto flex h-full max-w-[1140px] items-center justify-between px-6 lg:px-10">
@@ -63,11 +63,20 @@ export const Footer = ({
             </div>
           )}
 
+          {status === "warning" && (
+            <div className="flex flex-col text-base font-bold text-yellow-600 lg:text-2xl">
+              <div className="flex items-center">
+                <AlertTriangle className="mr-4 h-6 w-6 lg:h-10 lg:w-10" />
+                {skippedMessage || "Hmm... Try again."}
+              </div>
+            </div>
+          )}
+
           {status === "wrong" && (
             <div className="flex flex-col text-base font-bold text-rose-500 lg:text-2xl">
               <div className="flex items-center">
                 <XCircle className="mr-4 h-6 w-6 lg:h-10 lg:w-10" />
-                Try again.
+                {skippedMessage || "Try again."}
               </div>
               {correctAnswerText && (
                 <div className="mt-2 text-sm font-medium text-rose-500/80 lg:text-base lg:ml-14">
@@ -110,7 +119,7 @@ export const Footer = ({
         >
           {status === "none" && "Check"}
           {(status === "correct" || status === "skipped") && "Next"}
-          {status === "wrong" && "Retry"}
+          {(status === "wrong" || status === "warning") && "Retry"}
           {status === "completed" && "Continue"}
         </Button>
       </div>
