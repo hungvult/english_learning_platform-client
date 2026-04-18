@@ -88,7 +88,13 @@ export function TypeHear({ exerciseId, data, onAnswer, disabled }: Props) {
         value={userInput}
         disabled={disabled || submitted}
         onChange={(e) => setUserInput(e.target.value)}
-        onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            e.stopPropagation();
+            handleSubmit();
+          }
+        }}
         placeholder="Type what you hear…"
         className="rounded-xl border-2 border-slate-200 px-4 py-3 outline-none focus:border-sky-400"
       />

@@ -26,7 +26,11 @@ export const Footer = ({
   ignoreLabel,
   skippedMessage,
 }: FooterProps) => {
-  useKey("Enter", onCheck, {}, [onCheck]);
+  useKey("Enter", () => {
+    if (!disabled) {
+      onCheck();
+    }
+  }, {}, [onCheck, disabled]);
   const isMobile = useMedia("(max-width: 1024px)", false); // Provide a default for SSR
   const [mounted, setMounted] = useState(false);
 
