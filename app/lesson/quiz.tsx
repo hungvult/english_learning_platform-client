@@ -10,6 +10,7 @@ import { toast } from "sonner";
 
 import { MAX_HEARTS } from "@/constants";
 import { api } from "@/lib/api";
+import { useLocale } from "@/components/locale-provider";
 import type {
   Challenge,
   LessonCompletePayload,
@@ -53,6 +54,7 @@ export const Quiz = ({
   const [pending, startTransition] = useTransition();
   const { open: openHeartsModal } = useHeartsModal();
   const { open: openPracticeModal } = usePracticeModal();
+  const { t } = useLocale();
 
   // Track lesson start time for final payload
   const [startedAt] = useState(() => new Date().toISOString());
@@ -105,7 +107,7 @@ export const Quiz = ({
           { method: "POST", body: JSON.stringify(payload) }
         );
       } catch {
-        toast.error("Failed to save progress. Please try again.");
+        toast.error(t.failedToSaveProgress);
       }
     });
   };
@@ -190,7 +192,7 @@ export const Quiz = ({
           />
 
           <h1 className="text-lg font-bold text-neutral-700 lg:text-3xl">
-            Great job! <br /> You&apos;ve completed the lesson.
+            {t.greatJob} <br /> {t.lessonComplete}
           </h1>
 
           <div className="flex w-full items-center gap-x-4">
@@ -210,7 +212,7 @@ export const Quiz = ({
 
   const title =
     challenge.type === "ASSIST"
-      ? "Select the correct meaning"
+      ? t.selectCorrectMeaning
       : challenge.question;
 
   return (

@@ -15,11 +15,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useHeartsModal } from "@/store/use-hearts-modal";
+import { useLocale } from "@/components/locale-provider";
 
 export const HeartsModal = () => {
   const router = useRouter();
   const [isClient, setIsClient] = useState(false);
   const { isOpen, close } = useHeartsModal();
+  const { t } = useLocale();
 
   useEffect(() => setIsClient(true), []);
 
@@ -39,12 +41,11 @@ export const HeartsModal = () => {
           </div>
 
           <DialogTitle className="text-center text-2xl font-bold">
-            You ran out of hearts!
+            {t.outOfHearts}
           </DialogTitle>
 
           <DialogDescription className="text-center text-base">
-            Hearts regenerate automatically over time. Come back later or keep
-            practising to earn more.
+            {t.heartsRegenerate}
           </DialogDescription>
         </DialogHeader>
 
@@ -59,7 +60,7 @@ export const HeartsModal = () => {
                 router.push("/learn");
               }}
             >
-              Back to lessons
+              {t.backToLessons}
             </Button>
 
             <Button
@@ -68,7 +69,7 @@ export const HeartsModal = () => {
               size="lg"
               onClick={close}
             >
-              No thanks
+              {t.noThanks}
             </Button>
           </div>
         </DialogFooter>

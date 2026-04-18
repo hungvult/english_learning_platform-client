@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import { Volume2, Loader } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { TypeHearData } from "@/types/api";
+import { useLocale } from "@/components/locale-provider";
 
 type Props = {
   exerciseId: string;
@@ -13,6 +14,7 @@ type Props = {
 };
 
 export function TypeHear({ exerciseId, data, onAnswer, disabled }: Props) {
+  const { t } = useLocale();
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState<1 | 0.5>(1);
   const [userInput, setUserInput] = useState("");
@@ -108,7 +110,7 @@ export function TypeHear({ exerciseId, data, onAnswer, disabled }: Props) {
           (submitted || !userInput.trim()) && "pointer-events-none opacity-60"
         )}
       >
-        {submitted ? "Submitted" : "Check"}
+        {submitted ? t.submitted : t.check}
       </button>
     </div>
   );

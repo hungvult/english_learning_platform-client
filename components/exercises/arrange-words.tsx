@@ -4,6 +4,7 @@ import { useState } from "react";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ArrangeWordsData } from "@/types/api";
+import { useLocale } from "@/components/locale-provider";
 
 type Props = {
   data: ArrangeWordsData;
@@ -12,6 +13,7 @@ type Props = {
 };
 
 export function ArrangeWords({ data, onAnswer, disabled }: Props) {
+  const { t } = useLocale();
   const [available, setAvailable] = useState<string[]>([...data.tokens].sort(() => Math.random() - 0.5));
   const [arranged, setArranged] = useState<string[]>([]);
   const [submitted, setSubmitted] = useState(false);
@@ -78,7 +80,7 @@ export function ArrangeWords({ data, onAnswer, disabled }: Props) {
           (arranged.length === 0 || submitted) && "pointer-events-none opacity-60"
         )}
       >
-        {submitted ? "Submitted" : "Check"}
+        {submitted ? t.submitted : t.check}
       </button>
     </div>
   );

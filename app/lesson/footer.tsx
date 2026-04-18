@@ -4,6 +4,7 @@ import { useKey, useMedia } from "react-use";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useLocale } from "@/components/locale-provider";
 
 type FooterProps = {
   onCheck: () => void;
@@ -26,6 +27,8 @@ export const Footer = ({
   ignoreLabel,
   skippedMessage,
 }: FooterProps) => {
+  const { t } = useLocale();
+
   useKey("Enter", () => {
     if (!disabled) {
       onCheck();
@@ -56,14 +59,14 @@ export const Footer = ({
           {status === "correct" && (
             <div className="flex items-center text-base font-bold text-green-500 lg:text-2xl">
               <CheckCircle className="mr-4 h-6 w-6 lg:h-10 lg:w-10" />
-              Nicely done!
+              {t.nicelyDone}
             </div>
           )}
 
           {status === "skipped" && (
             <div className="flex items-center text-base font-bold text-yellow-600 lg:text-2xl">
               <AlertTriangle className="mr-4 h-6 w-6 lg:h-10 lg:w-10" />
-              {skippedMessage || "Exercise skipped for 15 minutes."}
+              {skippedMessage || t.exerciseSkipped}
             </div>
           )}
 
@@ -71,7 +74,7 @@ export const Footer = ({
             <div className="flex flex-col text-base font-bold text-yellow-600 lg:text-2xl">
               <div className="flex items-center">
                 <AlertTriangle className="mr-4 h-6 w-6 lg:h-10 lg:w-10" />
-                {skippedMessage || "Hmm... Try again."}
+                {skippedMessage || t.hmmTryAgain}
               </div>
             </div>
           )}
@@ -80,11 +83,11 @@ export const Footer = ({
             <div className="flex flex-col text-base font-bold text-rose-500 lg:text-2xl">
               <div className="flex items-center">
                 <XCircle className="mr-4 h-6 w-6 lg:h-10 lg:w-10" />
-                {skippedMessage || "Try again."}
+                {skippedMessage || t.tryAgain}
               </div>
               {correctAnswerText && (
                 <div className="mt-2 text-sm font-medium text-rose-500/80 lg:text-base lg:ml-14">
-                  Correct solution: <span className="font-bold text-rose-500">{correctAnswerText}</span>
+                  {t.correctSolution} <span className="font-bold text-rose-500">{correctAnswerText}</span>
                 </div>
               )}
             </div>
@@ -96,7 +99,7 @@ export const Footer = ({
               size={buttonSize}
               onClick={() => (window.location.href = `/lesson/${lessonId}`)}
             >
-              Practice again
+              {t.practiceAgain}
             </Button>
           )}
 
@@ -121,10 +124,10 @@ export const Footer = ({
           size={buttonSize}
           variant={status === "wrong" ? "danger" : "secondary"}
         >
-          {status === "none" && "Check"}
-          {(status === "correct" || status === "skipped") && "Next"}
-          {(status === "wrong" || status === "warning") && "Retry"}
-          {status === "completed" && "Continue"}
+          {status === "none" && t.check}
+          {(status === "correct" || status === "skipped") && t.next}
+          {(status === "wrong" || status === "warning") && t.retry}
+          {status === "completed" && t.continue}
         </Button>
       </div>
     </footer>

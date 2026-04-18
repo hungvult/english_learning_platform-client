@@ -3,6 +3,7 @@ import { CoursesList } from "@/components/courses-list";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { getLocaleFromCourse, getTranslations } from "@/lib/i18n";
 
 type UserCoursesResponse = {
   activeCourseId?: string;
@@ -22,13 +23,18 @@ const CoursesPage = async () => {
     console.error("Failed to fetch courses:", error);
   }
 
+  const activeTitle = data.activeCourseId
+    ? data.courses.find((c) => c.id === data.activeCourseId)?.title
+    : undefined;
+  const t = getTranslations(getLocaleFromCourse(activeTitle));
+
   return (
     <div className="h-full max-w-[912px] mx-auto pb-10">
       <div className="pt-6 px-3">
         <Button variant="ghost" asChild>
           <Link href="/learn">
             <ArrowLeft className="h-5 w-5 mr-2" />
-            Return to Learn
+            {t.returnToLearn}
           </Link>
         </Button>
       </div>
