@@ -138,7 +138,7 @@ function ExerciseNode({ exercise, typeName }: { exercise: AdminExercise; typeNam
 // Exercise list (inside a lesson)
 // ---------------------------------------------------------------------------
 
-function ExerciseTreeList({ lessonId }: { lessonId: string; expanded: boolean }) {
+function ExerciseTreeList({ lessonId }: { lessonId: string }) {
   const { data: exerciseTypes = [] } = useGetList<AdminExerciseType>("exercise-types", {
     pagination: { page: 1, perPage: 100 },
   });
@@ -220,7 +220,7 @@ function LessonNode({ lesson }: { lesson: AdminLesson }) {
         </Box>
       </TreeRow>
       <Collapse in={expanded} unmountOnExit>
-        <ExerciseTreeList lessonId={lesson.id} expanded={expanded} />
+        <ExerciseTreeList lessonId={lesson.id} />
       </Collapse>
     </>
   );
@@ -626,11 +626,16 @@ function FormFields({ dialog }: FormFieldsProps) {
 // Content dialog
 // ---------------------------------------------------------------------------
 
-const RESOURCE_LABELS: Record<string, string> = {
-  courses: "Course",
-  units: "Unit",
-  lessons: "Lesson",
-  exercises: "Exercise",
+/** Maps each dialog kind to the correct plural resource name and display label. */
+const DIALOG_META: Record<string, { resource: string; label: string }> = {
+  "create-course":   { resource: "courses",   label: "Course" },
+  "edit-course":     { resource: "courses",   label: "Course" },
+  "create-unit":     { resource: "units",     label: "Unit" },
+  "edit-unit":       { resource: "units",     label: "Unit" },
+  "create-lesson":   { resource: "lessons",   label: "Lesson" },
+  "edit-lesson":     { resource: "lessons",   label: "Lesson" },
+  "create-exercise": { resource: "exercises", label: "Exercise" },
+  "edit-exercise":   { resource: "exercises", label: "Exercise" },
 };
 
 function ContentDialog({
@@ -644,9 +649,8 @@ function ContentDialog({
 
   if (!dialog) return null;
 
+  const { resource, label } = DIALOG_META[dialog.kind] ?? { resource: dialog.kind, label: dialog.kind };
   const isCreate = dialog.kind.startsWith("create-");
-  const resource = dialog.kind.replace(/^(create|edit)-/, "");
-  const label = RESOURCE_LABELS[resource] ?? resource;
   const title = `${isCreate ? "Create" : "Edit"} ${label}`;
 
   // Build default record for creates (pre-fill parent IDs)
@@ -662,7 +666,8 @@ function ContentDialog({
     },
   };
 
-  // Non-exercise resources use a simple Save button toolbar
+  // Non-exercise resources use a simple Save button toolbar.
+  // Exercises render their own Toolbar inside ExerciseFields.
   const simpleToolbar =
     resource !== "exercises" ? (
       <Toolbar sx={{ backgroundColor: "transparent", mt: 1, px: 0, minHeight: 0 }}>
