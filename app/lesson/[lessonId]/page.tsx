@@ -9,10 +9,15 @@ type LessonIdPageProps = {
   params: Promise<{
     lessonId: string;
   }>;
+  searchParams: Promise<{
+    preview?: string;
+  }>;
 };
 
-const LessonIdPage = async ({ params }: LessonIdPageProps) => {
+const LessonIdPage = async ({ params, searchParams }: LessonIdPageProps) => {
   const { lessonId } = await params;
+  const { preview } = await searchParams;
+  const isPreviewMode = preview === "1" || preview === "true";
 
   let lesson: ExerciseLessonPayload | null = null;
   let userProgress: UserProgress | null = null;
@@ -32,6 +37,7 @@ const LessonIdPage = async ({ params }: LessonIdPageProps) => {
     <ExerciseQuiz
       lesson={lesson}
       initialHearts={userProgress.hearts}
+      mode={isPreviewMode ? "PREVIEW" : "PRACTICE"}
     />
   );
 };

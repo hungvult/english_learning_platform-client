@@ -11,6 +11,7 @@ import { MAX_HEARTS } from "@/constants";
 import { api } from "@/lib/api";
 import { usePreferences } from "@/store/use-preferences";
 import { useLocale } from "@/components/locale-provider";
+import type { Translations } from "@/lib/i18n";
 import type {
   Exercise,
   ExerciseLessonPayload,
@@ -66,7 +67,115 @@ function getCorrectAnswerString(exercise: Exercise, answerData: any): string | u
 type ExerciseQuizProps = {
   lesson: ExerciseLessonPayload;
   initialHearts: number;
+  mode?: "PRACTICE" | "PREVIEW";
 };
+
+type EvaluationStatus = "correct" | "wrong" | "skipped" | "warning";
+
+type EvaluationResult = {
+  status: EvaluationStatus;
+  correctAnswerText?: string;
+  skippedMessage?: string;
+  nextSpeakTries: number;
+};
+
+function evaluateExerciseAnswer({
+  exercise,
+  rawAnswer,
+  speakTries,
+  mode,
+  t,
+}: {
+  exercise: Exercise;
+  rawAnswer: unknown;
+  speakTries: number;
+  mode: "PRACTICE" | "PREVIEW";
+  t: Translations;
+}): EvaluationResult {
+  if (rawAnswer === "__SKIPPED__") {
+    return {
+      status: "skipped",
+      nextSpeakTries: 0,
+    };
+  }
+
+  if (rawAnswer === "__NO_STT__") {
+    return {
+      status: "skipped",
+      skippedMessage: t.voiceUnavailable,
+      nextSpeakTries: 0,
+    };
+  }
+
+  const answerData = exercise.answer_data || {};
+  let isCorrect = false;
+
+  if (exercise.type === "COMPLETE_CONVERSATION") {
+    isCorrect = String(rawAnswer) === String(answerData.correct_option_id || "");
+  } else if (exercise.type === "ARRANGE_WORDS") {
+    const correct = answerData.correct_sequence || [];
+    if (Array.isArray(rawAnswer)) {
+      isCorrect = JSON.stringify(rawAnswer.map(String)) === JSON.stringify(correct.map(String));
+    }
+  } else if (exercise.type === "COMPLETE_TRANSLATION") {
+    const correct = answerData.correct_words || [];
+    if (Array.isArray(rawAnswer)) {
+      isCorrect =
+        JSON.stringify(rawAnswer.map((w: string) => normalizeText(w))) ===
+        JSON.stringify(correct.map((w: string) => normalizeText(w)));
+    }
+  } else if (exercise.type === "PICTURE_MATCH") {
+    isCorrect = String(rawAnswer) === String(answerData.correct_option_id || "");
+  } else if (exercise.type === "TYPE_HEAR") {
+    const correct = answerData.correct_transcription || "";
+    isCorrect = normalizeText(String(rawAnswer)) === normalizeText(correct);
+  } else if (exercise.type === "LISTEN_FILL") {
+    const correct = answerData.correct_sequence_ids || [];
+    if (Array.isArray(rawAnswer)) {
+      isCorrect = JSON.stringify(rawAnswer.map(String)) === JSON.stringify(correct.map(String));
+    }
+  } else if (exercise.type === "SPEAK_SENTENCE") {
+    const expected = answerData.expected_text || "";
+    const expectedWords = normalizeText(expected)
+      .split(" ")
+      .filter((w) => w.length > 0);
+    const spokenWords = normalizeText(String(rawAnswer))
+      .split(" ")
+      .filter((w) => w.length > 0);
+    const matchedWordsCount = expectedWords.filter((w) => spokenWords.includes(w)).length;
+    isCorrect = matchedWordsCount >= Math.ceil(expectedWords.length / 2);
+  }
+
+  if (isCorrect) {
+    return {
+      status: "correct",
+      nextSpeakTries: 0,
+    };
+  }
+
+  if (exercise.type === "SPEAK_SENTENCE" && mode === "PRACTICE") {
+    const newTries = speakTries + 1;
+    if (newTries < 3) {
+      return {
+        status: "warning",
+        skippedMessage: t.hmmTryAgain,
+        nextSpeakTries: newTries,
+      };
+    }
+
+    return {
+      status: "wrong",
+      skippedMessage: t.letsMove,
+      nextSpeakTries: 0,
+    };
+  }
+
+  return {
+    status: "wrong",
+    correctAnswerText: getCorrectAnswerString(exercise, answerData),
+    nextSpeakTries: 0,
+  };
+}
 
 export const normalizeText = (text: string) => {
   return String(text || "")
@@ -79,7 +188,11 @@ export const normalizeText = (text: string) => {
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
-export function ExerciseQuiz({ lesson, initialHearts }: ExerciseQuizProps) {
+export function ExerciseQuiz({
+  lesson,
+  initialHearts,
+  mode = "PRACTICE",
+}: ExerciseQuizProps) {
   const router = useRouter();
   const { width, height } = useWindowSize();
   const [pending, startTransition] = useTransition();
@@ -167,74 +280,21 @@ export function ExerciseQuiz({ lesson, initialHearts }: ExerciseQuizProps) {
     if (feedbackStatus === "correct" || feedbackStatus === "skipped" || feedbackStatus === "wrong") return;
     setCurrentRawAnswer(rawAnswer);
 
-    // Offline fallback / explicitly skipped
-    if (rawAnswer === "__SKIPPED__" || rawAnswer === "__NO_STT__") {
-      if (!skippedMessage && rawAnswer === "__NO_STT__") {
-        setSkippedMessage(t.voiceUnavailable);
-      }
-      // Set to warning if it's NO_STT because the user might just have an error, but spec asks for fail gracefully.
-      // We'll leave it as skipped.
-      setFeedbackStatus("skipped");
-      return;
-    }
-
     try {
-      const type = currentExercise.type;
-      const answerData = currentExercise.answer_data || {};
-      let isCorrect = false;
+      const evaluation = evaluateExerciseAnswer({
+        exercise: currentExercise,
+        rawAnswer,
+        speakTries,
+        mode,
+        t,
+      });
 
-      if (type === "COMPLETE_CONVERSATION") {
-        isCorrect = String(rawAnswer) === String(answerData.correct_option_id || "");
-      } else if (type === "ARRANGE_WORDS") {
-        const correct = answerData.correct_sequence || [];
-        if (Array.isArray(rawAnswer)) {
-          isCorrect = JSON.stringify(rawAnswer.map(String)) === JSON.stringify(correct.map(String));
-        }
-      } else if (type === "COMPLETE_TRANSLATION") {
-        const correct = answerData.correct_words || [];
-        if (Array.isArray(rawAnswer)) {
-          isCorrect = JSON.stringify(rawAnswer.map((w: string) => normalizeText(w))) === 
-                     JSON.stringify(correct.map((w: string) => normalizeText(w)));
-        }
-      } else if (type === "PICTURE_MATCH") {
-        isCorrect = String(rawAnswer) === String(answerData.correct_option_id || "");
-      } else if (type === "TYPE_HEAR") {
-        const correct = answerData.correct_transcription || "";
-        isCorrect = normalizeText(String(rawAnswer)) === normalizeText(correct);
-      } else if (type === "LISTEN_FILL") {
-        const correct = answerData.correct_sequence_ids || [];
-        if (Array.isArray(rawAnswer)) {
-          isCorrect = JSON.stringify(rawAnswer.map(String)) === JSON.stringify(correct.map(String));
-        }
-      } else if (type === "SPEAK_SENTENCE") {
-        const expected = answerData.expected_text || "";
-        const expectedWords = normalizeText(expected).split(" ").filter(w => w.length > 0);
-        const spokenWords = normalizeText(String(rawAnswer)).split(" ").filter(w => w.length > 0);
-        const matchedWordsCount = expectedWords.filter(w => spokenWords.includes(w)).length;
-        isCorrect = matchedWordsCount >= Math.ceil(expectedWords.length / 2);
-      }
-
-      if (isCorrect) {
-        setSpeakTries(0);
-        setFeedbackStatus("correct");
-      } else {
-        if (type === "SPEAK_SENTENCE") {
-           const newTries = speakTries + 1;
-           if (newTries < 3) {
-              setSpeakTries(newTries);
-              setSkippedMessage(t.hmmTryAgain);
-              setFeedbackStatus("warning");
-              return; // Do not log answer correctly down below just yet
-           }
-           setSpeakTries(0);
-           setSkippedMessage(t.letsMove);
-        } else {
-           setSkippedMessage(undefined);
-        }
-        const correctStr = getCorrectAnswerString(currentExercise, answerData);
-        setCorrectAnswerText(correctStr);
-        setFeedbackStatus("wrong");
-      }
+      setSpeakTries(evaluation.nextSpeakTries);
+      setSkippedMessage(evaluation.skippedMessage);
+      setCorrectAnswerText(
+        evaluation.status === "wrong" ? evaluation.correctAnswerText : undefined
+      );
+      setFeedbackStatus(evaluation.status);
     } catch {
       toast.error(t.validationFailed);
       setCurrentRawAnswer(undefined);
@@ -254,46 +314,42 @@ export function ExerciseQuiz({ lesson, initialHearts }: ExerciseQuizProps) {
     }
 
     const isSkipped = feedbackStatus === "skipped";
+    const currentDetail: AnswerDetail | null = !isSkipped
+      ? {
+          exercise_id: currentExercise.id,
+          user_answer:
+            typeof currentRawAnswer === "string"
+              ? currentRawAnswer
+              : JSON.stringify(currentRawAnswer),
+          is_correct: feedbackStatus === "correct",
+          time_spent_ms: Date.now() - questionStart,
+        }
+      : null;
 
-    if (!isSkipped) {
-      const detail: AnswerDetail = {
-        exercise_id: currentExercise.id,
-        user_answer:
-          typeof currentRawAnswer === "string"
-            ? currentRawAnswer
-            : JSON.stringify(currentRawAnswer),
-        is_correct: feedbackStatus === "correct",
-        time_spent_ms: Date.now() - questionStart,
-      };
-      setAnswers([...answers, detail]);
-    }
+    const updatedAnswers = currentDetail ? [...answers, currentDetail] : answers;
+    setAnswers(updatedAnswers);
 
-    // Instead of retrying immediately, we queue wrong answers to end
-    let updatedQueue = dynamicQueue;
-    if (feedbackStatus === "wrong") {
-      updatedQueue = [...dynamicQueue, currentExercise];
-      setDynamicQueue(updatedQueue);
+    let nextQueue = dynamicQueue;
+    if (mode === "PRACTICE" && feedbackStatus === "wrong") {
+      nextQueue = [...dynamicQueue, currentExercise];
+      setDynamicQueue(nextQueue);
     }
 
     const nextIndex = activeIndex + 1;
 
-    if (nextIndex >= updatedQueue.length) {
-      // All exercises done (queue is fully consumed) — submit and show completion screen
-      const finalAnswers = !isSkipped ? [...answers, {
-        exercise_id: currentExercise.id,
-        user_answer: typeof currentRawAnswer === "string" ? currentRawAnswer : JSON.stringify(currentRawAnswer),
-        is_correct: feedbackStatus === "correct",
-        time_spent_ms: Date.now() - questionStart,
-      }] : answers;
-      submitLesson(finalAnswers);
+    if (nextIndex >= nextQueue.length) {
+      if (mode === "PRACTICE") {
+        submitLesson(updatedAnswers);
+      }
       setFinished(true);
-    } else {
-      setActiveIndex(nextIndex);
-      setFeedbackStatus("none");
-      setCurrentRawAnswer(undefined);
-      setSkippedMessage(undefined);
-      setQuestionStart(Date.now());
+      return;
     }
+
+    setActiveIndex(nextIndex);
+    setFeedbackStatus("none");
+    setCurrentRawAnswer(undefined);
+    setSkippedMessage(undefined);
+    setQuestionStart(Date.now());
   };
 
   // ── Final submission (Spec §6.4 — single POST after all exercises) ──────
@@ -301,7 +357,9 @@ export function ExerciseQuiz({ lesson, initialHearts }: ExerciseQuizProps) {
     startTransition(async () => {
       try {
         const correct = finalAnswers.filter((a) => a.is_correct).length;
-        const score = Math.round((correct / finalAnswers.length) * 100);
+        const score = finalAnswers.length
+          ? Math.round((correct / finalAnswers.length) * 100)
+          : 0;
 
         const payload: LessonSubmission = {
           answers: finalAnswers,
@@ -346,7 +404,7 @@ export function ExerciseQuiz({ lesson, initialHearts }: ExerciseQuizProps) {
   // ── Lesson complete screen ───────────────────────────────────────────────
   if (finished) {
     const correct = answers.filter((a) => a.is_correct).length;
-    const score = Math.round((correct / answers.length) * 100);
+    const score = answers.length ? Math.round((correct / answers.length) * 100) : 0;
 
     return (
       <>
@@ -413,7 +471,7 @@ export function ExerciseQuiz({ lesson, initialHearts }: ExerciseQuizProps) {
   // Determine Ignore button props for Footer
   let ignoreLabel: string | undefined = undefined;
   let onIgnore: (() => void) | undefined = undefined;
-  
+
   if (mounted) {
     if (!isListeningIgnored() && (currentExercise?.type === "TYPE_HEAR" || currentExercise?.type === "LISTEN_FILL")) {
       ignoreLabel = t.cantListenNow;
@@ -441,6 +499,7 @@ export function ExerciseQuiz({ lesson, initialHearts }: ExerciseQuizProps) {
             <ExerciseEngine
               key={`${currentExercise.id}-${activeIndex}`} // remount on exercise attempt change
               exercise={currentExercise}
+              mode={mode === "PREVIEW" ? "PREVIEW" : "PRACTICE"}
               disabled={feedbackStatus !== "none"}
               onComplete={handleAnswer}
             />
@@ -456,6 +515,7 @@ export function ExerciseQuiz({ lesson, initialHearts }: ExerciseQuizProps) {
         onIgnore={onIgnore}
         ignoreLabel={ignoreLabel}
         skippedMessage={skippedMessage}
+        isPreview={mode === "PREVIEW"}
       />
     </>
   );

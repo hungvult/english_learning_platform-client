@@ -10,6 +10,7 @@ type FooterProps = {
   onCheck: () => void;
   status: "correct" | "wrong" | "none" | "completed" | "skipped" | "warning";
   disabled?: boolean;
+  isPreview?: boolean;
   lessonId?: number;
   correctAnswerText?: string;
   onIgnore?: () => void;
@@ -21,6 +22,7 @@ export const Footer = ({
   onCheck,
   status,
   disabled,
+  isPreview,
   lessonId,
   correctAnswerText,
   onIgnore,
@@ -53,7 +55,7 @@ export const Footer = ({
       )}
     >
       <div className="mx-auto flex h-full max-w-[1140px] items-center justify-between px-6 lg:px-10">
-        
+
         {/* Left section for correct/wrong/completed status */}
         <div className="flex flex-col">
           {status === "correct" && (
@@ -126,7 +128,7 @@ export const Footer = ({
         >
           {status === "none" && t.check}
           {(status === "correct" || status === "skipped") && t.next}
-          {(status === "wrong" || status === "warning") && t.retry}
+          {(status === "wrong" || status === "warning") && (isPreview ? t.next : t.retry)}
           {status === "completed" && t.continue}
         </Button>
       </div>

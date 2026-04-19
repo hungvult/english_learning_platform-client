@@ -18,7 +18,7 @@ import { TypeHear } from "@/components/exercises/type-hear";
 import { ListenFill } from "@/components/exercises/listen-fill";
 import { SpeakSentence } from "@/components/exercises/speak-sentence";
 
-type Mode = "PRACTICE" | "ADMIN_PREVIEW";
+type Mode = "PRACTICE" | "ADMIN_PREVIEW" | "PREVIEW";
 
 type ExerciseEngineProps = {
   exercise: Exercise;
