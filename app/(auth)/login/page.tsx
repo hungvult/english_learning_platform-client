@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { persistAuthToken } from "@/lib/auth-token";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
-import type { TokenResponse } from "@/types/api";
+import type { TokenResponse, UserProfile } from "@/types/api";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -25,7 +25,13 @@ export default function LoginPage() {
           body: JSON.stringify({ email, password }),
         });
         persistAuthToken(token.access_token);
-        router.replace("/learn");
+
+        try {
+          const me = await api<UserProfile>("/api/v1/users/me");
+          router.replace(me.is_admin ? "/admin" : "/learn");
+        } catch {
+          router.replace("/learn");
+        }
       } catch {
         toast.error("Invalid credentials. Please try again.");
       }

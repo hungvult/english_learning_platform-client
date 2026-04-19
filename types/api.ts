@@ -218,3 +218,21 @@ export interface ProgressResponse {
   hearts: number;
   gems: number;
 }
+
+// ---------------------------------------------------------------------------
+// Admin API types
+// ---------------------------------------------------------------------------
+
+export interface AdminUser {
+  id: string;
+  username: string;
+  email: string;
+  is_admin: boolean;
+  cefr_level: string | null;
+  total_xp: number | null;
+  hearts: number | null;
+  gems: number | null;
+  current_streak: number | null;
+  last_activity_at: string | null;
+  created_at: string | null;
+}
