@@ -322,6 +322,27 @@ export function ExerciseQuiz({ lesson, initialHearts }: ExerciseQuizProps) {
     });
   };
 
+  // ── Empty lesson (No exercises assigned) ─────────────────────────────────
+  if (lesson.exercises.length === 0) {
+    return (
+      <div className="mx-auto flex h-full max-w-lg flex-col items-center justify-center gap-y-6 text-center px-4 py-10">
+        <Image src="/finish.svg" alt="Empty" height={100} width={100} className="grayscale" />
+        <h1 className="text-2xl font-bold text-neutral-700 lg:text-3xl">
+          {t.lessonEmptyTitle}
+        </h1>
+        <p className="text-neutral-500 text-lg">
+          {t.lessonEmptyDesc}
+        </p>
+        <button
+          onClick={() => router.push("/learn")}
+          className="mt-4 w-full rounded-xl border-b-4 border-green-600 bg-green-500 py-3 font-bold text-white transition hover:bg-green-400"
+        >
+          {t.returnToLearn}
+        </button>
+      </div>
+    );
+  }
+
   // ── Lesson complete screen ───────────────────────────────────────────────
   if (finished) {
     const correct = answers.filter((a) => a.is_correct).length;

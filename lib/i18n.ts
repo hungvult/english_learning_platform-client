@@ -62,6 +62,8 @@ export const translations = {
     // Lesson complete
     greatJob: "Great job!",
     lessonComplete: "You've completed the lesson.",
+    lessonEmptyTitle: "Lesson Empty",
+    lessonEmptyDesc: "This lesson doesn't have any exercises yet. Check back later!",
     score: "Score",
     hearts: "Hearts",
     heartsLeft: "Hearts Left",
@@ -164,6 +166,8 @@ export const translations = {
     // Lesson complete
     greatJob: "Làm tốt lắm!",
     lessonComplete: "Bạn đã hoàn thành bài học.",
+    lessonEmptyTitle: "Bài học trống",
+    lessonEmptyDesc: "Bài học này chưa có bài tập nào. Vui lòng quay lại sau!",
     score: "Điểm",
     hearts: "Tim",
     heartsLeft: "Tim còn lại",
