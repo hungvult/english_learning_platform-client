@@ -13,14 +13,20 @@ import {
   NumberField,
   NumberInput,
   Resource,
+  SaveButton,
   SimpleForm,
   TextField,
   TextInput,
+  Toolbar,
   required,
 } from "react-admin";
 import { BrowserRouter } from "react-router-dom";
 import { createTheme } from "@mui/material/styles";
 import GroupIcon from "@mui/icons-material/Group";
+import SchoolIcon from "@mui/icons-material/School";
+import LayersIcon from "@mui/icons-material/Layers";
+import MenuBookIcon from "@mui/icons-material/MenuBook";
+import AssignmentIcon from "@mui/icons-material/Assignment";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import { Box, Button } from "@mui/material";
 import type { LayoutProps } from "react-admin";
@@ -30,6 +36,14 @@ import { toast } from "sonner";
 
 import { api } from "@/lib/api";
 import { adminDataProvider } from "@/lib/admin-data-provider";
+import { CourseCreate, CourseEdit, CourseList } from "@/components/admin/resources/courses";
+import { UnitCreate, UnitEdit, UnitList } from "@/components/admin/resources/units";
+import { LessonCreate, LessonEdit, LessonList } from "@/components/admin/resources/lessons";
+import {
+  ExerciseCreate,
+  ExerciseEdit,
+  ExerciseList,
+} from "@/components/admin/resources/exercises";
 
 const adminTheme = createTheme({
   palette: {
@@ -67,9 +81,54 @@ const i18nProvider = polyglotI18nProvider(() => {
           current_streak: "Streak",
         },
       },
+      courses: {
+        name: "Course |||| Courses",
+        fields: {
+          title: "Title",
+          expected_cefr_level: "CEFR Level",
+        },
+      },
+      units: {
+        name: "Unit |||| Units",
+        fields: {
+          course_id: "Course",
+          title: "Title",
+          order_index: "Order",
+        },
+      },
+      lessons: {
+        name: "Lesson |||| Lessons",
+        fields: {
+          unit_id: "Unit",
+          lesson_form_id: "Lesson Form ID",
+          title: "Title",
+          order_index: "Order",
+        },
+      },
+      exercises: {
+        name: "Exercise |||| Exercises",
+        fields: {
+          lesson_id: "Lesson",
+          exercise_type_id: "Type",
+          question_data: "Question Data",
+          answer_data: "Answer Data",
+        },
+      },
+      "exercise-types": {
+        name: "Exercise Type |||| Exercise Types",
+        fields: {
+          name: "Name",
+        },
+      },
     },
   };
 }, "en");
+
+const UserSaveToolbar = () => (
+  <Toolbar>
+    <SaveButton />
+  </Toolbar>
+);
 
 const UserList = () => (
   <List>
@@ -89,7 +148,7 @@ const UserList = () => (
 
 const UserEdit = () => (
   <Edit>
-    <SimpleForm>
+    <SimpleForm toolbar={<UserSaveToolbar />}>
       <TextInput source="username" fullWidth validate={[required()]} />
       <TextInput source="email" fullWidth validate={[required()]} />
       <TextInput source="cefr_level" fullWidth />
@@ -112,7 +171,7 @@ const onLogout = async () => {
   }
 };
 
-const UsersMenu = () => (
+const AdminMenu = () => (
   <Menu>
     <Menu.DashboardItem leftIcon={<DashboardIcon />} />
     <Menu.ResourceItems />
@@ -131,11 +190,11 @@ const UsersMenu = () => (
   </Menu>
 );
 
-const UsersLayout = (props: LayoutProps) => (
+const AdminLayout = (props: LayoutProps) => (
   <Layout
     {...props}
     appBar={NoAppBar}
-    menu={UsersMenu}
+    menu={AdminMenu}
     sx={{
       "& .RaLayout-contentWithSidebar": {
         marginTop: 0,
@@ -146,8 +205,10 @@ const UsersLayout = (props: LayoutProps) => (
 
 const Dashboard = () => (
   <div className="p-4">
-    <h1 className="text-2xl font-bold text-neutral-900">Users Management</h1>
-    <p className="mt-2 text-sm text-neutral-600">Manage user accounts, roles, and progress values.</p>
+    <h1 className="text-2xl font-bold text-neutral-900">Admin Dashboard</h1>
+    <p className="mt-2 text-sm text-neutral-600">
+      Manage courses, units, lessons, exercises, and users.
+    </p>
   </div>
 );
 
@@ -161,7 +222,40 @@ export function AdminUsersApp() {
         darkTheme={null}
         defaultTheme="light"
       >
-        <AdminUI title="Admin Users" dashboard={Dashboard} layout={UsersLayout}>
+        <AdminUI title="Admin" dashboard={Dashboard} layout={AdminLayout}>
+          <Resource
+            name="courses"
+            icon={SchoolIcon}
+            list={CourseList}
+            create={CourseCreate}
+            edit={CourseEdit}
+            recordRepresentation="title"
+          />
+          <Resource
+            name="units"
+            icon={LayersIcon}
+            list={UnitList}
+            create={UnitCreate}
+            edit={UnitEdit}
+            recordRepresentation="title"
+          />
+          <Resource
+            name="lessons"
+            icon={MenuBookIcon}
+            list={LessonList}
+            create={LessonCreate}
+            edit={LessonEdit}
+            recordRepresentation="title"
+          />
+          <Resource
+            name="exercises"
+            icon={AssignmentIcon}
+            list={ExerciseList}
+            create={ExerciseCreate}
+            edit={ExerciseEdit}
+          />
+          {/* exercise-types is referenced by exercises but has no dedicated CRUD pages */}
+          <Resource name="exercise-types" recordRepresentation="name" />
           <Resource
             name="users"
             icon={GroupIcon}
@@ -174,3 +268,4 @@ export function AdminUsersApp() {
     </BrowserRouter>
   );
 }
+

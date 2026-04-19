@@ -236,3 +236,44 @@ export interface AdminUser {
   last_activity_at: string | null;
   created_at: string | null;
 }
+
+export interface AdminCourse {
+  id: string;
+  title: string;
+  expected_cefr_level: string;
+}
+
+export interface AdminUnit {
+  id: string;
+  course_id: string;
+  title: string;
+  order_index: number;
+}
+
+export interface AdminLesson {
+  id: string;
+  unit_id: string;
+  lesson_form_id: string;
+  title: string;
+  order_index: number;
+}
+
+export interface AdminExercise {
+  id: string;
+  lesson_id: string;
+  exercise_type_id: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  question_data: Record<string, any> | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  answer_data: Record<string, any>;
+}
+
+export interface AdminExerciseType {
+  id: string;
+  name: string;
+}
+
+export interface MistakeAnalyticsItem {
+  user_answer: string;
+  count: number;
+}
