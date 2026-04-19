@@ -19,7 +19,7 @@ const QuestsPage = async () => {
     redirect("/login");
   }
 
-  if (!userProgress || !userProgress.activeCourse) redirect("/courses");
+  if (!userProgress || !userProgress.activeCourse) redirect("/setup");
 
   const t = getTranslations(getLocaleFromCourse(userProgress.activeCourse?.title));
 

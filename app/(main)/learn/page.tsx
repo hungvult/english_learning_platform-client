@@ -22,7 +22,7 @@ const LearnPage = async () => {
   }
 
   if (!userProgress || !userProgress.activeCourse) {
-    redirect("/courses");
+    redirect("/setup");
   }
 
   try {
@@ -31,11 +31,11 @@ const LearnPage = async () => {
       api<CourseProgress>("/api/v1/users/me/course-progress"),
     ]);
   } catch {
-    redirect("/courses");
+    redirect("/setup");
   }
 
   if (!courseProgress) {
-    redirect("/courses");
+    redirect("/setup");
   }
 
   return (
