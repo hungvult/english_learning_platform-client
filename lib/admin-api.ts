@@ -2,6 +2,11 @@ import { api } from "@/lib/api";
 
 const endpointMap = {
   users: "/api/v1/admin/users",
+  courses: "/api/v1/admin/courses",
+  units: "/api/v1/admin/units",
+  lessons: "/api/v1/admin/lessons",
+  exercises: "/api/v1/admin/exercises",
+  "exercise-types": "/api/v1/admin/exercise-types",
 } as const;
 
 export type AdminResourceName = keyof typeof endpointMap;
