@@ -28,7 +28,7 @@ export default function RegisterPage() {
           method: "POST",
           body: JSON.stringify({ username, email, password }),
         });
-        router.push("/setup");
+        router.push("/login");
       } catch {
         toast.error("Registration failed. Username may already exist.");
       }
