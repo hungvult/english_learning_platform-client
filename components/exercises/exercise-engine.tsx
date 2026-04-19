@@ -7,9 +7,7 @@ import type {
   ArrangeWordsData,
   CompleteTranslationData,
   PictureMatchData,
-  TypeHearData,
   ListenFillData,
-  SpeakSentenceData,
 } from "@/types/api";
 
 import { CompleteConversation } from "@/components/exercises/complete-conversation";
@@ -85,7 +83,7 @@ export function ExerciseEngine({
       return (
         <TypeHear
           exerciseId={id}
-          data={question_data as TypeHearData}
+          exercise={exercise}
           {...commonProps}
         />
       );

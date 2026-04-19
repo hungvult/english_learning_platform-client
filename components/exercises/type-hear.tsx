@@ -3,23 +3,24 @@
 import { useState, useRef } from "react";
 import { Volume2, Loader } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { TypeHearData } from "@/types/api";
+import type { Exercise } from "@/types/api";
 import { useLocale } from "@/components/locale-provider";
 
 type Props = {
   exerciseId: string;
-  data: TypeHearData;
+  exercise: Exercise;
   onAnswer: (answer: string) => void;
   disabled?: boolean;
 };
 
-export function TypeHear({ exerciseId, data, onAnswer, disabled }: Props) {
+export function TypeHear({ exerciseId, exercise, onAnswer, disabled }: Props) {
   const { t } = useLocale();
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState<1 | 0.5>(1);
   const [userInput, setUserInput] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const ttsText = String(exercise.answer_data?.correct_transcription || "");
 
   const playAudio = async (rate: 1 | 0.5) => {
     if (playing) return;
@@ -29,7 +30,7 @@ export function TypeHear({ exerciseId, data, onAnswer, disabled }: Props) {
     try {
       // Use Web Speech API for TTS (online) or audio file if available
       if ("speechSynthesis" in window && navigator.onLine) {
-        const utterance = new SpeechSynthesisUtterance(data.text);
+        const utterance = new SpeechSynthesisUtterance(ttsText);
         utterance.lang = "en-US";
         utterance.rate = rate;
         utterance.onend = () => setPlaying(false);

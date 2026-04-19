@@ -158,8 +158,7 @@ export interface PictureMatchData {
 }
 
 export interface TypeHearData {
-  instruction: string;
-  text: string; // TTS source
+  instruction?: string;
 }
 
 export interface ListenFillData {
@@ -182,7 +181,8 @@ export interface Exercise {
     | PictureMatchData
     | TypeHearData
     | ListenFillData
-    | SpeakSentenceData;
+    | SpeakSentenceData
+    | null;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   answer_data: Record<string, any>;
 }
