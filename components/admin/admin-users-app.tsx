@@ -4,6 +4,7 @@ import {
   AdminContext,
   AdminUI,
   BooleanField,
+  CustomRoutes,
   Datagrid,
   Edit,
   EditButton,
@@ -20,13 +21,10 @@ import {
   Toolbar,
   required,
 } from "react-admin";
-import { BrowserRouter } from "react-router-dom";
+import { BrowserRouter, Route } from "react-router-dom";
 import { createTheme } from "@mui/material/styles";
+import AccountTreeIcon from "@mui/icons-material/AccountTree";
 import GroupIcon from "@mui/icons-material/Group";
-import SchoolIcon from "@mui/icons-material/School";
-import LayersIcon from "@mui/icons-material/Layers";
-import MenuBookIcon from "@mui/icons-material/MenuBook";
-import AssignmentIcon from "@mui/icons-material/Assignment";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import { Box, Button } from "@mui/material";
 import type { LayoutProps } from "react-admin";
@@ -36,14 +34,7 @@ import { toast } from "sonner";
 
 import { api } from "@/lib/api";
 import { adminDataProvider } from "@/lib/admin-data-provider";
-import { CourseCreate, CourseEdit, CourseList } from "@/components/admin/resources/courses";
-import { UnitCreate, UnitEdit, UnitList } from "@/components/admin/resources/units";
-import { LessonCreate, LessonEdit, LessonList } from "@/components/admin/resources/lessons";
-import {
-  ExerciseCreate,
-  ExerciseEdit,
-  ExerciseList,
-} from "@/components/admin/resources/exercises";
+import { ContentExplorer } from "@/components/admin/content-explorer";
 
 const adminTheme = createTheme({
   palette: {
@@ -79,45 +70,6 @@ const i18nProvider = polyglotI18nProvider(() => {
           hearts: "Hearts",
           gems: "Gems",
           current_streak: "Streak",
-        },
-      },
-      courses: {
-        name: "Course |||| Courses",
-        fields: {
-          title: "Title",
-          expected_cefr_level: "CEFR Level",
-        },
-      },
-      units: {
-        name: "Unit |||| Units",
-        fields: {
-          course_id: "Course",
-          title: "Title",
-          order_index: "Order",
-        },
-      },
-      lessons: {
-        name: "Lesson |||| Lessons",
-        fields: {
-          unit_id: "Unit",
-          lesson_form_id: "Lesson Form ID",
-          title: "Title",
-          order_index: "Order",
-        },
-      },
-      exercises: {
-        name: "Exercise |||| Exercises",
-        fields: {
-          lesson_id: "Lesson",
-          exercise_type_id: "Type",
-          question_data: "Question Data",
-          answer_data: "Answer Data",
-        },
-      },
-      "exercise-types": {
-        name: "Exercise Type |||| Exercise Types",
-        fields: {
-          name: "Name",
         },
       },
     },
@@ -174,6 +126,7 @@ const onLogout = async () => {
 const AdminMenu = () => (
   <Menu>
     <Menu.DashboardItem leftIcon={<DashboardIcon />} />
+    <Menu.Item to="/content" primaryText="Content Explorer" leftIcon={<AccountTreeIcon />} />
     <Menu.ResourceItems />
 
     <Box sx={{ mt: 2, px: 2, pb: 2 }}>
@@ -223,39 +176,19 @@ export function AdminUsersApp() {
         defaultTheme="light"
       >
         <AdminUI title="Admin" dashboard={Dashboard} layout={AdminLayout}>
-          <Resource
-            name="courses"
-            icon={SchoolIcon}
-            list={CourseList}
-            create={CourseCreate}
-            edit={CourseEdit}
-            recordRepresentation="title"
-          />
-          <Resource
-            name="units"
-            icon={LayersIcon}
-            list={UnitList}
-            create={UnitCreate}
-            edit={UnitEdit}
-            recordRepresentation="title"
-          />
-          <Resource
-            name="lessons"
-            icon={MenuBookIcon}
-            list={LessonList}
-            create={LessonCreate}
-            edit={LessonEdit}
-            recordRepresentation="title"
-          />
-          <Resource
-            name="exercises"
-            icon={AssignmentIcon}
-            list={ExerciseList}
-            create={ExerciseCreate}
-            edit={ExerciseEdit}
-          />
-          {/* exercise-types is referenced by exercises but has no dedicated CRUD pages */}
+          {/* Custom page: file-explorer for Course→Unit→Lesson→Exercise */}
+          <CustomRoutes>
+            <Route path="/content" element={<ContentExplorer />} />
+          </CustomRoutes>
+
+          {/* Content resources registered for data access (no dedicated list pages) */}
+          <Resource name="courses" recordRepresentation="title" />
+          <Resource name="units" recordRepresentation="title" />
+          <Resource name="lessons" recordRepresentation="title" />
+          <Resource name="exercises" />
           <Resource name="exercise-types" recordRepresentation="name" />
+
+          {/* Users resource – full list + edit */}
           <Resource
             name="users"
             icon={GroupIcon}
