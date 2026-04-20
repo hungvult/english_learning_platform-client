@@ -79,7 +79,7 @@ type EvaluationResult = {
   nextSpeakTries: number;
 };
 
-function evaluateExerciseAnswer({
+export function evaluateExerciseAnswer({
   exercise,
   rawAnswer,
   speakTries,

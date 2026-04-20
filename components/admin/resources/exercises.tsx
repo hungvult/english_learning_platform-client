@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useWatch } from "react-hook-form";
 import {
   Create,
@@ -23,9 +23,11 @@ import {
 } from "react-admin";
 import {
   Box,
+  Button as MuiButton,
   Chip,
   CircularProgress,
   Dialog,
+  DialogActions,
   DialogContent,
   DialogTitle,
   Table,
@@ -39,8 +41,10 @@ import BarChartIcon from "@mui/icons-material/BarChart";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 
 import { ExerciseEngine } from "@/components/exercises/exercise-engine";
+import { evaluateExerciseAnswer } from "@/app/lesson/exercise-quiz";
+import { translations } from "@/lib/i18n";
 import { adminFetch } from "@/lib/admin-api";
-import type { AdminExerciseType, MistakeAnalyticsItem } from "@/types/api";
+import type { AdminExerciseType, Exercise, MistakeAnalyticsItem } from "@/types/api";
 import {
   ExerciseDynamicFields,
 } from "@/components/admin/resources/exercise-fields";
@@ -74,6 +78,52 @@ type PreviewDialogProps = {
 };
 
 function PreviewDialog({ open, onClose, exercise }: PreviewDialogProps) {
+  const [feedbackStatus, setFeedbackStatus] = useState<"none" | "correct" | "wrong">("none");
+  const [pendingAnswer, setPendingAnswer] = useState<unknown>(null);
+  const [correctAnswerText, setCorrectAnswerText] = useState<string | undefined>();
+  const [tryCount, setTryCount] = useState(0);
+
+  // Reset state each time the dialog opens
+  useEffect(() => {
+    if (open) {
+      setFeedbackStatus("none");
+      setPendingAnswer(null);
+      setCorrectAnswerText(undefined);
+      setTryCount(0);
+    }
+  }, [open]);
+
+  const handleAnswer = (rawAnswer: unknown) => {
+    if (feedbackStatus !== "none") return;
+    setPendingAnswer(rawAnswer);
+  };
+
+  const handleCheck = () => {
+    if (pendingAnswer === null) return;
+    const result = evaluateExerciseAnswer({
+      exercise: exercise as Exercise,
+      rawAnswer: pendingAnswer,
+      speakTries: 0,
+      mode: "PREVIEW",
+      t: translations.en,
+    });
+    if (result.status === "correct") {
+      setFeedbackStatus("correct");
+      setCorrectAnswerText(undefined);
+    } else if (result.status === "wrong" || result.status === "warning") {
+      setFeedbackStatus("wrong");
+      setCorrectAnswerText(result.correctAnswerText);
+    }
+    // skipped → leave feedback as "none" (no answer to evaluate)
+  };
+
+  const handleReset = () => {
+    setFeedbackStatus("none");
+    setPendingAnswer(null);
+    setCorrectAnswerText(undefined);
+    setTryCount((c) => c + 1);
+  };
+
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle>Exercise Preview</DialogTitle>
@@ -82,15 +132,50 @@ function PreviewDialog({ open, onClose, exercise }: PreviewDialogProps) {
           <Chip label={exercise.type} size="small" color="primary" sx={{ mb: 2 }} />
           {exercise.type ? (
             <ExerciseEngine
+              key={`${exercise.type}-${tryCount}`}
               exercise={exercise as Parameters<typeof ExerciseEngine>[0]["exercise"]}
-              mode="ADMIN_PREVIEW"
-              onComplete={() => {}}
+              mode="PREVIEW"
+              disabled={feedbackStatus !== "none"}
+              onComplete={handleAnswer}
             />
           ) : (
             <Typography color="text.secondary">Select an exercise type first.</Typography>
           )}
+
+          {/* Feedback */}
+          {feedbackStatus === "correct" && (
+            <Box sx={{ mt: 2, p: 1.5, bgcolor: "#f0fdf4", border: "1px solid #86efac", borderRadius: 1 }}>
+              <Typography sx={{ color: "#16a34a", fontWeight: "bold" }}>✓ Correct!</Typography>
+            </Box>
+          )}
+          {feedbackStatus === "wrong" && (
+            <Box sx={{ mt: 2, p: 1.5, bgcolor: "#fff1f2", border: "1px solid #fda4af", borderRadius: 1 }}>
+              <Typography sx={{ color: "#e11d48", fontWeight: "bold" }}>✗ Incorrect</Typography>
+              {correctAnswerText && (
+                <Typography sx={{ color: "#e11d48", mt: 0.5 }} variant="body2">
+                  Correct answer: <strong>{correctAnswerText}</strong>
+                </Typography>
+              )}
+            </Box>
+          )}
         </Box>
       </DialogContent>
+      <DialogActions>
+        <MuiButton onClick={onClose}>Close</MuiButton>
+        {feedbackStatus === "none" ? (
+          <MuiButton
+            variant="contained"
+            onClick={handleCheck}
+            disabled={pendingAnswer === null}
+          >
+            Check Answer
+          </MuiButton>
+        ) : (
+          <MuiButton variant="outlined" onClick={handleReset}>
+            Try Again
+          </MuiButton>
+        )}
+      </DialogActions>
     </Dialog>
   );
 }
