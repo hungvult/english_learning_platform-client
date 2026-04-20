@@ -46,6 +46,7 @@ import {
   DialogContent,
   DialogTitle,
   IconButton,
+  InputAdornment,
   Paper,
   Table,
   TableBody,
@@ -53,6 +54,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  TextField,
   Tooltip,
   Typography,
 } from "@mui/material";
@@ -62,6 +64,7 @@ import BarChartIcon from "@mui/icons-material/BarChart";
 import EditIcon from "@mui/icons-material/Edit";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import SchoolIcon from "@mui/icons-material/School";
+import SearchIcon from "@mui/icons-material/Search";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 
 import { ExerciseEngine } from "@/components/exercises/exercise-engine";
@@ -142,6 +145,37 @@ function PageHeader({
       </Typography>
       <Button label={addLabel} startIcon={<AddIcon />} variant="contained" onClick={onAdd} />
     </Box>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Search box (local, client-side)
+// ---------------------------------------------------------------------------
+
+function SearchBox({
+  value,
+  onChange,
+  placeholder,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+}) {
+  return (
+    <TextField
+      size="small"
+      placeholder={placeholder ?? "Search…"}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      sx={{ mb: 2, maxWidth: 320 }}
+      InputProps={{
+        startAdornment: (
+          <InputAdornment position="start">
+            <SearchIcon fontSize="small" color="action" />
+          </InputAdornment>
+        ),
+      }}
+    />
   );
 }
 
@@ -429,11 +463,18 @@ function CourseFormContent() {
 export function CoursesPage() {
   const navigate = useNavigate();
   const [dialog, setDialog] = useState<DialogState>(null);
+  const [search, setSearch] = useState("");
 
   const { data: courses, isLoading } = useGetList<AdminCourse>("courses", {
     pagination: { page: 1, perPage: 200 },
     sort: { field: "title", order: "ASC" },
   });
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q || !courses) return courses ?? [];
+    return courses.filter((c) => c.title.toLowerCase().includes(q));
+  }, [courses, search]);
 
   return (
     <Box sx={{ p: 3, maxWidth: 900 }}>
@@ -443,6 +484,7 @@ export function CoursesPage() {
         addLabel="Add Course"
         onAdd={() => setDialog({ mode: "create", defaults: {} })}
       />
+      <SearchBox value={search} onChange={setSearch} placeholder="Search by title…" />
 
       <Paper variant="outlined">
         {isLoading ? (
@@ -466,16 +508,16 @@ export function CoursesPage() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {!courses?.length ? (
+                {!filtered.length ? (
                   <TableRow>
                     <TableCell colSpan={3}>
                       <Typography color="text.secondary" sx={{ p: 1 }}>
-                        No courses yet.
+                        {search ? "No courses match your search." : "No courses yet."}
                       </Typography>
                     </TableCell>
                   </TableRow>
                 ) : (
-                  courses.map((course) => (
+                  filtered.map((course) => (
                     <TableRow
                       key={course.id}
                       hover
@@ -544,6 +586,7 @@ export function UnitsPage() {
   const { courseId = "" } = useParams<{ courseId: string }>();
   const navigate = useNavigate();
   const [dialog, setDialog] = useState<DialogState>(null);
+  const [search, setSearch] = useState("");
 
   const { data: course } = useGetOne<AdminCourse>("courses", { id: courseId }, { enabled: !!courseId });
   const { data: units, isLoading } = useGetList<AdminUnit>("units", {
@@ -553,6 +596,12 @@ export function UnitsPage() {
   });
 
   const courseName = course?.title ?? courseId;
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q || !units) return units ?? [];
+    return units.filter((u) => u.title.toLowerCase().includes(q));
+  }, [units, search]);
 
   return (
     <Box sx={{ p: 3, maxWidth: 900 }}>
@@ -567,6 +616,7 @@ export function UnitsPage() {
         addLabel="Add Unit"
         onAdd={() => setDialog({ mode: "create", defaults: { course_id: courseId } })}
       />
+      <SearchBox value={search} onChange={setSearch} placeholder="Search by title…" />
 
       <Paper variant="outlined">
         {isLoading ? (
@@ -578,11 +628,11 @@ export function UnitsPage() {
             <Table size="small">
               <TableHead>
                 <TableRow>
-                  <TableCell>
-                    <strong>Title</strong>
+                  <TableCell sx={{ width: 80 }}>
+                    <strong>Order</strong>
                   </TableCell>
                   <TableCell>
-                    <strong>Order</strong>
+                    <strong>Title</strong>
                   </TableCell>
                   <TableCell align="right">
                     <strong>Actions</strong>
@@ -590,19 +640,19 @@ export function UnitsPage() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {!units?.length ? (
+                {!filtered.length ? (
                   <TableRow>
                     <TableCell colSpan={3}>
                       <Typography color="text.secondary" sx={{ p: 1 }}>
-                        No units for this course.
+                        {search ? "No units match your search." : "No units for this course."}
                       </Typography>
                     </TableCell>
                   </TableRow>
                 ) : (
-                  units.map((unit) => (
+                  filtered.map((unit) => (
                     <TableRow key={unit.id} hover>
-                      <TableCell>{unit.title}</TableCell>
                       <TableCell>{unit.order_index}</TableCell>
+                      <TableCell>{unit.title}</TableCell>
                       <TableCell align="right" sx={{ whiteSpace: "nowrap" }}>
                         <Tooltip title="Edit unit">
                           <IconButton
@@ -655,13 +705,6 @@ export function UnitsPage() {
 function LessonFormContent() {
   return (
     <>
-      <TextInput
-        source="lesson_form_id"
-        label="Lesson Form ID (UUID)"
-        fullWidth
-        validate={[required()]}
-        helperText="UUID of the lesson form template"
-      />
       <TextInput source="title" fullWidth validate={[required()]} />
       <NumberInput source="order_index" label="Order Index" min={0} validate={[required()]} />
       <SaveOnly />
@@ -673,6 +716,7 @@ export function LessonsPage() {
   const { courseId = "", unitId = "" } = useParams<{ courseId: string; unitId: string }>();
   const navigate = useNavigate();
   const [dialog, setDialog] = useState<DialogState>(null);
+  const [search, setSearch] = useState("");
 
   const { data: course } = useGetOne<AdminCourse>("courses", { id: courseId }, { enabled: !!courseId });
   const { data: unit } = useGetOne<AdminUnit>("units", { id: unitId }, { enabled: !!unitId });
@@ -684,6 +728,12 @@ export function LessonsPage() {
 
   const courseName = course?.title ?? courseId;
   const unitName = unit?.title ?? unitId;
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q || !lessons) return lessons ?? [];
+    return lessons.filter((l) => l.title.toLowerCase().includes(q));
+  }, [lessons, search]);
 
   return (
     <Box sx={{ p: 3, maxWidth: 900 }}>
@@ -699,6 +749,7 @@ export function LessonsPage() {
         addLabel="Add Lesson"
         onAdd={() => setDialog({ mode: "create", defaults: { unit_id: unitId } })}
       />
+      <SearchBox value={search} onChange={setSearch} placeholder="Search by title…" />
 
       <Paper variant="outlined">
         {isLoading ? (
@@ -710,14 +761,11 @@ export function LessonsPage() {
             <Table size="small">
               <TableHead>
                 <TableRow>
+                  <TableCell sx={{ width: 80 }}>
+                    <strong>Order</strong>
+                  </TableCell>
                   <TableCell>
                     <strong>Title</strong>
-                  </TableCell>
-                  <TableCell>
-                    <strong>Lesson Form ID</strong>
-                  </TableCell>
-                  <TableCell>
-                    <strong>Order</strong>
                   </TableCell>
                   <TableCell align="right">
                     <strong>Actions</strong>
@@ -725,24 +773,19 @@ export function LessonsPage() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {!lessons?.length ? (
+                {!filtered.length ? (
                   <TableRow>
-                    <TableCell colSpan={4}>
+                    <TableCell colSpan={3}>
                       <Typography color="text.secondary" sx={{ p: 1 }}>
-                        No lessons for this unit.
+                        {search ? "No lessons match your search." : "No lessons for this unit."}
                       </Typography>
                     </TableCell>
                   </TableRow>
                 ) : (
-                  lessons.map((lesson) => (
+                  filtered.map((lesson) => (
                     <TableRow key={lesson.id} hover>
-                      <TableCell>{lesson.title}</TableCell>
-                      <TableCell>
-                        <Typography variant="caption" sx={{ fontFamily: "monospace" }}>
-                          {lesson.lesson_form_id}
-                        </Typography>
-                      </TableCell>
                       <TableCell>{lesson.order_index}</TableCell>
+                      <TableCell>{lesson.title}</TableCell>
                       <TableCell align="right" sx={{ whiteSpace: "nowrap" }}>
                         <Tooltip title="Edit lesson">
                           <IconButton
@@ -799,6 +842,7 @@ export function ExercisesPage() {
     lessonId = "",
   } = useParams<{ courseId: string; unitId: string; lessonId: string }>();
   const [dialog, setDialog] = useState<DialogState>(null);
+  const [search, setSearch] = useState("");
 
   const { data: course } = useGetOne<AdminCourse>("courses", { id: courseId }, { enabled: !!courseId });
   const { data: unit } = useGetOne<AdminUnit>("units", { id: unitId }, { enabled: !!unitId });
@@ -822,6 +866,14 @@ export function ExercisesPage() {
     [exerciseTypes]
   );
 
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q || !exercises) return exercises ?? [];
+    return exercises.filter((ex) =>
+      (typeMap[ex.exercise_type_id] ?? "").toLowerCase().includes(q)
+    );
+  }, [exercises, search, typeMap]);
+
   return (
     <Box sx={{ p: 3, maxWidth: 1000 }}>
       <BreadcrumbNav
@@ -837,6 +889,7 @@ export function ExercisesPage() {
         addLabel="Add Exercise"
         onAdd={() => setDialog({ mode: "create", defaults: { lesson_id: lessonId } })}
       />
+      <SearchBox value={search} onChange={setSearch} placeholder="Search by type…" />
 
       <Paper variant="outlined">
         {isLoading ? (
@@ -858,16 +911,16 @@ export function ExercisesPage() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {!exercises?.length ? (
+                {!filtered.length ? (
                   <TableRow>
                     <TableCell colSpan={3}>
                       <Typography color="text.secondary" sx={{ p: 1 }}>
-                        No exercises for this lesson.
+                        {search ? "No exercises match your search." : "No exercises for this lesson."}
                       </Typography>
                     </TableCell>
                   </TableRow>
                 ) : (
-                  exercises.map((ex, idx) => (
+                  filtered.map((ex, idx) => (
                     <TableRow key={ex.id} hover>
                       <TableCell>{idx + 1}</TableCell>
                       <TableCell>
