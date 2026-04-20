@@ -27,7 +27,7 @@ export async function api<T>(
     typeof FormData !== "undefined" && init?.body instanceof FormData;
 
   if (!headers.has("Content-Type") && !isFormDataBody) {
-    headers.set("Content-Type", "application/json");
+    headers.set("Content-Type", "application/json; charset=utf-8");
   }
 
   if (token) {
