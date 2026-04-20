@@ -20,7 +20,7 @@ export const Header = ({ hearts, percentage }: HeaderProps) => {
 
       <Progress value={percentage} />
 
-      <div className="flex items-center font-bold text-rose-500">
+      {/* <div className="flex items-center font-bold text-rose-500">
         <img
           src="/heart.svg"
           height={28}
@@ -29,7 +29,7 @@ export const Header = ({ hearts, percentage }: HeaderProps) => {
           className="mr-2"
         />
         {hearts}
-      </div>
+      </div> */}
     </header>
   );
 };
