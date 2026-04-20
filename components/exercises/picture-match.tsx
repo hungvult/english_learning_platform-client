@@ -11,6 +11,27 @@ type Props = {
   disabled?: boolean;
 };
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+
+function resolveOptionImageUrl(raw: string): string {
+  const value = raw.trim();
+  if (!value) return "";
+
+  if (value.startsWith("http://") || value.startsWith("https://")) {
+    return value;
+  }
+
+  if (value.startsWith("images/")) {
+    return `${API_BASE}/static/${value}`;
+  }
+
+  if (value.startsWith("/static/")) {
+    return `${API_BASE}${value}`;
+  }
+
+  return value;
+}
+
 export function PictureMatch({ data, onAnswer, disabled }: Props) {
   const [selected, setSelected] = useState<string | null>(null);
 
@@ -39,7 +60,7 @@ export function PictureMatch({ data, onAnswer, disabled }: Props) {
           >
             <div className="relative mb-2 h-24 w-full">
               <Image
-                src={opt.image_url}
+                src={resolveOptionImageUrl(opt.image_url)}
                 alt={opt.text}
                 fill
                 className="rounded-lg object-cover"
