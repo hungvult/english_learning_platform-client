@@ -1,33 +1,38 @@
 # English Learning Platform - Client
 
-This project is the frontend for the English Learning Platform, an interactive language learning application built with Next.js.
+This project is the frontend for the **English Learning Platform**, built with **Next.js 14** using the App Router. It serves two primary audiences:
+1. **Students**: Gamified learning environment with interactive exercise interfaces.
+2. **Administrators**: A robust CMS built with **React-Admin** for managing curriculum and exercise data.
 
-## How to run the project
+## Getting Started
 
-To run the development server, use the following commands:
+### Prerequisites
+- **Node.js**: 20+
+- **npm**: 10+
 
-```bash
-# Install the project dependencies (if not already installed)
-npm install
+### Installation & Run
+1. Create a `.env.local` file from `.env.example`.
+2. Install dependencies: `npm install`
+3. Run development server: `npm run dev`
 
-# Start the development server
-npm run dev
-```
-
-After starting the server, open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to view the application.
 
 ## Project Structure
 
-The project uses the modern Next.js App Router architecture. Here is a brief overview of the main directories:
+- **`app/`**: Next.js App Router root.
+  - **`(auth)/`**: Login and Registration pages.
+  - **`(main)/`**: Protected student routes (learning paths, practice).
+  - **`admin/`**: The Administrative dashboard entry point.
+- **`components/`**: UI component library.
+  - **`admin/`**: Specialized components for CMS (e.g., `content-pages.tsx` for reordering logic).
+  - **`game/`**: Game-specific UI elements (Hearts, XP, Streak bar).
+  - **`lesson/`**: Interactive exercise quiz components.
+- **`lib/`**: Business logic, hooks (`useSwapOrder`), and API fetch wrappers.
+- **`store/`**: Zustand state management for progress and game state.
+- **`types/`**: TypeScript interfaces shared across the application.
+- **`config/`**: Global constants and feature flags.
 
-- **`app/`**: Contains the routes and main pages for the application.
-  - **`(auth)/`**: Pages for authentication, including Login and Registration.
-  - **`(marketing)/`**: The landing page and public-facing routes.
-  - **`(main)/`**: Main application routes for authenticated users (e.g., learning paths and lessons).
-  - **`api/`**: Next.js API routes if any.
-- **`components/`**: Reusable UI components used throughout the application.
-- **`lib/`**: Utility functions, custom hooks, and shared libraries (like the `api` fetch wrapper).
-- **`public/`**: Static assets such as images (`hero.svg`, `mascot.svg`, etc.) that are served directly.
-- **`store/`**: Configuration for global state management.
-- **`types/`**: TypeScript type definitions ensuring type-safety across the application.
-- **`config/`**: Global configuration and constants.
+## Key Features
+- **Gamified Learning**: Progress tracking with hearts and XP.
+- **Dynamic Exercises**: Support for Word Bank, Listening, Speaking, and Matching.
+- **Content Management**: Advanced admin tools for curriculm sequence management (Reorder/Swap).
