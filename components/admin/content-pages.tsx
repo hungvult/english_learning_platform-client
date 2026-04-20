@@ -599,8 +599,8 @@ export function UnitsPage() {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q || !units) return units ?? [];
-    return units.filter((u) => u.title.toLowerCase().includes(q));
+    const base = q && units ? units.filter((u) => u.title.toLowerCase().includes(q)) : (units ?? []);
+    return [...base].sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0));
   }, [units, search]);
 
   return (
@@ -731,8 +731,8 @@ export function LessonsPage() {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q || !lessons) return lessons ?? [];
-    return lessons.filter((l) => l.title.toLowerCase().includes(q));
+    const base = q && lessons ? lessons.filter((l) => l.title.toLowerCase().includes(q)) : (lessons ?? []);
+    return [...base].sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0));
   }, [lessons, search]);
 
   return (
