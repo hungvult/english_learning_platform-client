@@ -21,7 +21,7 @@ import {
   Toolbar,
   required,
 } from "react-admin";
-import { BrowserRouter, Route } from "react-router-dom";
+import { BrowserRouter, Navigate, Route } from "react-router-dom";
 import { createTheme } from "@mui/material/styles";
 import AccountTreeIcon from "@mui/icons-material/AccountTree";
 import GroupIcon from "@mui/icons-material/Group";
@@ -34,7 +34,12 @@ import { toast } from "sonner";
 
 import { api } from "@/lib/api";
 import { adminDataProvider } from "@/lib/admin-data-provider";
-import { ContentExplorer } from "@/components/admin/content-explorer";
+import {
+  CoursesPage,
+  ExercisesPage,
+  LessonsPage,
+  UnitsPage,
+} from "@/components/admin/content-pages";
 
 const adminTheme = createTheme({
   palette: {
@@ -126,7 +131,7 @@ const onLogout = async () => {
 const AdminMenu = () => (
   <Menu>
     <Menu.DashboardItem leftIcon={<DashboardIcon />} />
-    <Menu.Item to="/content" primaryText="Content Explorer" leftIcon={<AccountTreeIcon />} />
+    <Menu.Item to="/content/courses" primaryText="Content Explorer" leftIcon={<AccountTreeIcon />} />
     <Menu.ResourceItems />
 
     <Box sx={{ mt: 2, px: 2, pb: 2 }}>
@@ -176,9 +181,19 @@ export function AdminUsersApp() {
         defaultTheme="light"
       >
         <AdminUI title="Admin" dashboard={Dashboard} layout={AdminLayout}>
-          {/* Custom page: file-explorer for Course→Unit→Lesson→Exercise */}
+          {/* Multi-page content navigation: Course → Unit → Lesson → Exercise */}
           <CustomRoutes>
-            <Route path="/content" element={<ContentExplorer />} />
+            <Route path="/content" element={<Navigate to="/content/courses" replace />} />
+            <Route path="/content/courses" element={<CoursesPage />} />
+            <Route path="/content/courses/:courseId/units" element={<UnitsPage />} />
+            <Route
+              path="/content/courses/:courseId/units/:unitId/lessons"
+              element={<LessonsPage />}
+            />
+            <Route
+              path="/content/courses/:courseId/units/:unitId/lessons/:lessonId/exercises"
+              element={<ExercisesPage />}
+            />
           </CustomRoutes>
 
           {/* Content resources registered for data access (no dedicated list pages) */}
