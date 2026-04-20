@@ -529,11 +529,9 @@ export function CoursesPage() {
 // Units page  (/content/courses/:courseId/units)
 // ---------------------------------------------------------------------------
 
-function UnitFormContent({ courseId }: { courseId: string }) {
+function UnitFormContent() {
   return (
     <>
-      {/* course_id is pre-filled as a default record value — render as read-only */}
-      <TextInput source="course_id" label="Course ID" fullWidth disabled />
       <TextInput source="title" fullWidth validate={[required()]} />
       <NumberInput source="order_index" label="Order Index" min={0} validate={[required()]} />
       <SaveOnly />
@@ -642,7 +640,7 @@ export function UnitsPage() {
           resource="units"
           dialog={dialog}
           onClose={() => setDialog(null)}
-          formContent={<UnitFormContent courseId={courseId} />}
+          formContent={<UnitFormContent />}
         />
       )}
     </Box>
@@ -653,10 +651,9 @@ export function UnitsPage() {
 // Lessons page  (/content/courses/:courseId/units/:unitId/lessons)
 // ---------------------------------------------------------------------------
 
-function LessonFormContent({ unitId }: { unitId: string }) {
+function LessonFormContent() {
   return (
     <>
-      <TextInput source="unit_id" label="Unit ID" fullWidth disabled />
       <TextInput
         source="lesson_form_id"
         label="Lesson Form ID (UUID)"
@@ -783,7 +780,7 @@ export function LessonsPage() {
           resource="lessons"
           dialog={dialog}
           onClose={() => setDialog(null)}
-          formContent={<LessonFormContent unitId={unitId} />}
+          formContent={<LessonFormContent />}
         />
       )}
     </Box>
