@@ -214,7 +214,7 @@ export function ImageOptionField({ source }: Props) {
           <img
             src={previewUrl}
             alt="Option preview"
-            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            style={{ width: "100%", height: "100%", objectFit: "fill" }}
           />
         </Box>
       ) : (
