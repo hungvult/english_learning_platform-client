@@ -96,10 +96,11 @@ function BreadcrumbNav({ crumbs }: { crumbs: Crumb[] }) {
     <Breadcrumbs separator={<NavigateNextIcon fontSize="small" />} sx={{ mb: 1 }}>
       {crumbs.map((c, i) => {
         const isLast = i === crumbs.length - 1;
+        const key = c.to ?? c.label;
         if (isLast || !c.to) {
           return (
             <Typography
-              key={i}
+              key={key}
               variant="body2"
               color={isLast ? "text.primary" : "text.secondary"}
               fontWeight={isLast ? 600 : 400}
@@ -109,7 +110,7 @@ function BreadcrumbNav({ crumbs }: { crumbs: Crumb[] }) {
           );
         }
         return (
-          <RouterLink key={i} to={c.to} style={{ textDecoration: "none" }}>
+          <RouterLink key={key} to={c.to} style={{ textDecoration: "none" }}>
             <Typography variant="body2" color="primary.main">
               {c.label}
             </Typography>
@@ -252,8 +253,8 @@ function MistakesDialog({
               </TableRow>
             </TableHead>
             <TableBody>
-              {mistakes.map((row, i) => (
-                <TableRow key={i}>
+              {mistakes.map((row) => (
+                <TableRow key={row.user_answer}>
                   <TableCell>{row.user_answer}</TableCell>
                   <TableCell align="right">{row.count}</TableCell>
                 </TableRow>
