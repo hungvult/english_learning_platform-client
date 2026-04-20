@@ -62,6 +62,8 @@ import AddIcon from "@mui/icons-material/Add";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import BarChartIcon from "@mui/icons-material/BarChart";
 import EditIcon from "@mui/icons-material/Edit";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import SchoolIcon from "@mui/icons-material/School";
 import SearchIcon from "@mui/icons-material/Search";
@@ -78,6 +80,35 @@ import type {
   MistakeAnalyticsItem,
 } from "@/types/api";
 import { CEFR_CHOICES, ExerciseSelectAndFields } from "@/components/admin/resources/exercise-fields";
+
+// ---------------------------------------------------------------------------
+// Swap-order hook  (shared across Units / Lessons / Exercises)
+// ---------------------------------------------------------------------------
+
+function useSwapOrder(resource: string) {
+  const notify = useNotify();
+  const refresh = useRefresh();
+  const [swapping, setSwapping] = useState<string | null>(null);
+
+  const swap = async (idA: string, idB: string) => {
+    const key = `${idA}-${idB}`;
+    setSwapping(key);
+    try {
+      await adminFetch(`/api/v1/admin/${resource}/swap-order`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id_a: idA, id_b: idB }),
+      });
+      refresh();
+    } catch {
+      notify(`Failed to reorder ${resource}.`, { type: "error" });
+    } finally {
+      setSwapping(null);
+    }
+  };
+
+  return { swap, swapping };
+}
 
 // ---------------------------------------------------------------------------
 // Types
@@ -587,6 +618,7 @@ export function UnitsPage() {
   const navigate = useNavigate();
   const [dialog, setDialog] = useState<DialogState>(null);
   const [search, setSearch] = useState("");
+  const { swap, swapping } = useSwapOrder("units");
 
   const { data: course } = useGetOne<AdminCourse>("courses", { id: courseId }, { enabled: !!courseId });
   const { data: units, isLoading } = useGetList<AdminUnit>("units", {
@@ -649,11 +681,33 @@ export function UnitsPage() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filtered.map((unit) => (
+                  filtered.map((unit, idx) => (
                     <TableRow key={unit.id} hover>
                       <TableCell>{unit.order_index}</TableCell>
                       <TableCell>{unit.title}</TableCell>
                       <TableCell align="right" sx={{ whiteSpace: "nowrap" }}>
+                        <Tooltip title="Move up">
+                          <span>
+                            <IconButton
+                              size="small"
+                              disabled={idx === 0 || swapping !== null}
+                              onClick={() => swap(unit.id, filtered[idx - 1].id)}
+                            >
+                              <KeyboardArrowUpIcon fontSize="small" />
+                            </IconButton>
+                          </span>
+                        </Tooltip>
+                        <Tooltip title="Move down">
+                          <span>
+                            <IconButton
+                              size="small"
+                              disabled={idx === filtered.length - 1 || swapping !== null}
+                              onClick={() => swap(unit.id, filtered[idx + 1].id)}
+                            >
+                              <KeyboardArrowDownIcon fontSize="small" />
+                            </IconButton>
+                          </span>
+                        </Tooltip>
                         <Tooltip title="Edit unit">
                           <IconButton
                             size="small"
@@ -698,6 +752,9 @@ export function UnitsPage() {
   );
 }
 
+
+
+
 // ---------------------------------------------------------------------------
 // Lessons page  (/content/courses/:courseId/units/:unitId/lessons)
 // ---------------------------------------------------------------------------
@@ -717,6 +774,7 @@ export function LessonsPage() {
   const navigate = useNavigate();
   const [dialog, setDialog] = useState<DialogState>(null);
   const [search, setSearch] = useState("");
+  const { swap, swapping } = useSwapOrder("lessons");
 
   const { data: course } = useGetOne<AdminCourse>("courses", { id: courseId }, { enabled: !!courseId });
   const { data: unit } = useGetOne<AdminUnit>("units", { id: unitId }, { enabled: !!unitId });
@@ -782,11 +840,33 @@ export function LessonsPage() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filtered.map((lesson) => (
+                  filtered.map((lesson, idx) => (
                     <TableRow key={lesson.id} hover>
                       <TableCell>{lesson.order_index}</TableCell>
                       <TableCell>{lesson.title}</TableCell>
                       <TableCell align="right" sx={{ whiteSpace: "nowrap" }}>
+                        <Tooltip title="Move up">
+                          <span>
+                            <IconButton
+                              size="small"
+                              disabled={idx === 0 || swapping !== null}
+                              onClick={() => swap(lesson.id, filtered[idx - 1].id)}
+                            >
+                              <KeyboardArrowUpIcon fontSize="small" />
+                            </IconButton>
+                          </span>
+                        </Tooltip>
+                        <Tooltip title="Move down">
+                          <span>
+                            <IconButton
+                              size="small"
+                              disabled={idx === filtered.length - 1 || swapping !== null}
+                              onClick={() => swap(lesson.id, filtered[idx + 1].id)}
+                            >
+                              <KeyboardArrowDownIcon fontSize="small" />
+                            </IconButton>
+                          </span>
+                        </Tooltip>
                         <Tooltip title="Edit lesson">
                           <IconButton
                             size="small"
@@ -831,6 +911,9 @@ export function LessonsPage() {
   );
 }
 
+
+
+
 // ---------------------------------------------------------------------------
 // Exercises page (/content/courses/:courseId/units/:unitId/lessons/:lessonId/exercises)
 // ---------------------------------------------------------------------------
@@ -843,6 +926,7 @@ export function ExercisesPage() {
   } = useParams<{ courseId: string; unitId: string; lessonId: string }>();
   const [dialog, setDialog] = useState<DialogState>(null);
   const [search, setSearch] = useState("");
+  const { swap, swapping } = useSwapOrder("exercises");
 
   const { data: course } = useGetOne<AdminCourse>("courses", { id: courseId }, { enabled: !!courseId });
   const { data: unit } = useGetOne<AdminUnit>("units", { id: unitId }, { enabled: !!unitId });
@@ -854,7 +938,7 @@ export function ExercisesPage() {
   const { data: exercises, isLoading } = useGetList<AdminExercise>("exercises", {
     filter: { lesson_id: lessonId },
     pagination: { page: 1, perPage: 200 },
-    sort: { field: "id", order: "ASC" },
+    sort: { field: "order_index", order: "ASC" },
   });
 
   const courseName = course?.title ?? courseId;
@@ -864,12 +948,6 @@ export function ExercisesPage() {
   const typeMap = useMemo(
     () => Object.fromEntries(exerciseTypes.map((t) => [t.id, t.name])),
     [exerciseTypes]
-  );
-
-  // Stable 1-based position map keyed by exercise ID (unaffected by search filtering)
-  const positionMap = useMemo(
-    () => Object.fromEntries((exercises ?? []).map((ex, i) => [ex.id, i + 1])),
-    [exercises]
   );
 
   const filtered = useMemo(() => {
@@ -907,7 +985,7 @@ export function ExercisesPage() {
             <Table size="small">
               <TableHead>
                 <TableRow>
-                  <TableCell>#</TableCell>
+                  <TableCell sx={{ width: 60 }}>#</TableCell>
                   <TableCell>
                     <strong>Type</strong>
                   </TableCell>
@@ -926,9 +1004,9 @@ export function ExercisesPage() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filtered.map((ex) => (
+                  filtered.map((ex, idx) => (
                     <TableRow key={ex.id} hover>
-                      <TableCell>{positionMap[ex.id]}</TableCell>
+                      <TableCell>{idx + 1}</TableCell>
                       <TableCell>
                         <Chip
                           label={typeMap[ex.exercise_type_id] ?? "Unknown"}
@@ -938,6 +1016,28 @@ export function ExercisesPage() {
                         />
                       </TableCell>
                       <TableCell align="right" sx={{ whiteSpace: "nowrap" }}>
+                        <Tooltip title="Move up">
+                          <span>
+                            <IconButton
+                              size="small"
+                              disabled={idx === 0 || swapping !== null}
+                              onClick={() => swap(ex.id, filtered[idx - 1].id)}
+                            >
+                              <KeyboardArrowUpIcon fontSize="small" />
+                            </IconButton>
+                          </span>
+                        </Tooltip>
+                        <Tooltip title="Move down">
+                          <span>
+                            <IconButton
+                              size="small"
+                              disabled={idx === filtered.length - 1 || swapping !== null}
+                              onClick={() => swap(ex.id, filtered[idx + 1].id)}
+                            >
+                              <KeyboardArrowDownIcon fontSize="small" />
+                            </IconButton>
+                          </span>
+                        </Tooltip>
                         <Tooltip title="Edit exercise">
                           <IconButton
                             size="small"
@@ -973,3 +1073,4 @@ export function ExercisesPage() {
     </Box>
   );
 }
+
