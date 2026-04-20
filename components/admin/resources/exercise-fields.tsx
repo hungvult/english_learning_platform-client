@@ -18,6 +18,7 @@ import {
 import { Divider, Typography } from "@mui/material";
 
 import type { AdminExerciseType } from "@/types/api";
+import { ImageOptionField } from "@/components/admin/resources/image-option-field";
 
 // ---------------------------------------------------------------------------
 // Comma-separated string array helpers
@@ -179,7 +180,7 @@ export function ExerciseTypeFields({ typeName }: TypeFieldsProps) {
             <SimpleFormIterator inline>
               <TextInput source="id" label="Option ID" helperText="e.g. opt1" />
               <TextInput source="text" label="Label text" />
-              <TextInput source="image_url" label="Image URL" />
+              <ImageOptionField source="image_url" />
             </SimpleFormIterator>
           </ArrayInput>
           <Typography variant="subtitle2" sx={{ mt: 2, mb: 1 }}>
