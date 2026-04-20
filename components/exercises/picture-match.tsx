@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import { cn } from "@/lib/utils";
 import type { PictureMatchData } from "@/types/api";
 
@@ -59,11 +58,11 @@ export function PictureMatch({ data, onAnswer, disabled }: Props) {
             )}
           >
             <div className="relative mb-2 h-24 w-full">
-              <Image
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
                 src={resolveOptionImageUrl(opt.image_url)}
                 alt={opt.text}
-                fill
-                className="rounded-lg object-cover"
+                className="h-full w-full rounded-lg object-fill"
                 onError={(e) => {
                   // fallback if image missing
                   (e.target as HTMLImageElement).style.display = "none";
