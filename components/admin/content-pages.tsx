@@ -866,6 +866,12 @@ export function ExercisesPage() {
     [exerciseTypes]
   );
 
+  // Stable 1-based position map keyed by exercise ID (unaffected by search filtering)
+  const positionMap = useMemo(
+    () => Object.fromEntries((exercises ?? []).map((ex, i) => [ex.id, i + 1])),
+    [exercises]
+  );
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q || !exercises) return exercises ?? [];
@@ -920,9 +926,9 @@ export function ExercisesPage() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filtered.map((ex, idx) => (
+                  filtered.map((ex) => (
                     <TableRow key={ex.id} hover>
-                      <TableCell>{idx + 1}</TableCell>
+                      <TableCell>{positionMap[ex.id]}</TableCell>
                       <TableCell>
                         <Chip
                           label={typeMap[ex.exercise_type_id] ?? "Unknown"}
