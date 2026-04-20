@@ -427,10 +427,10 @@ export function ExerciseQuiz({
               <span className="text-2xl font-bold text-yellow-500">{score}</span>
               <span className="text-xs font-semibold uppercase text-yellow-400">{t.score}</span>
             </div>
-            <div className="flex flex-col items-center rounded-xl border-2 border-rose-400 bg-rose-50 px-6 py-3">
+            {/* <div className="flex flex-col items-center rounded-xl border-2 border-rose-400 bg-rose-50 px-6 py-3">
               <span className="text-2xl font-bold text-rose-500">{hearts}</span>
               <span className="text-xs font-semibold uppercase text-rose-400">{t.hearts}</span>
-            </div>
+            </div> */}
             {progressResult && (
               <div className="flex flex-col items-center rounded-xl border-2 border-green-400 bg-green-50 px-6 py-3">
                 <span className="text-2xl font-bold text-green-500">+{progressResult.xp_earned}</span>

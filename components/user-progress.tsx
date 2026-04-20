@@ -40,7 +40,7 @@ export const UserProgress = ({
         {points}
       </Button>
 
-      <Button variant="ghost" className="text-rose-500">
+      {/* <Button variant="ghost" className="text-rose-500">
         <Image
           src="/heart.svg"
           height={22}
@@ -49,7 +49,7 @@ export const UserProgress = ({
           className="mr-2"
         />
         {hearts}
-      </Button>
+      </Button> */}
     </div>
   );
 };
