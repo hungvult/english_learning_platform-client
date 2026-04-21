@@ -61,6 +61,7 @@ import {
 import AddIcon from "@mui/icons-material/Add";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import BarChartIcon from "@mui/icons-material/BarChart";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import EditIcon from "@mui/icons-material/Edit";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
@@ -70,10 +71,11 @@ import SearchIcon from "@mui/icons-material/Search";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 
 import { ExerciseEngine } from "@/components/exercises/exercise-engine";
-import { adminFetch } from "@/lib/admin-api";
+import { adminFetch, parseApiError } from "@/lib/admin-api";
 import type {
   AdminCourse,
   AdminExercise,
+  AdminExerciseDependencySummary,
   AdminExerciseType,
   AdminLesson,
   AdminUnit,
@@ -926,7 +928,10 @@ export function ExercisesPage() {
   } = useParams<{ courseId: string; unitId: string; lessonId: string }>();
   const [dialog, setDialog] = useState<DialogState>(null);
   const [search, setSearch] = useState("");
+  const [deletingExerciseId, setDeletingExerciseId] = useState<string | null>(null);
   const { swap, swapping } = useSwapOrder("exercises");
+  const notify = useNotify();
+  const refresh = useRefresh();
 
   const { data: course } = useGetOne<AdminCourse>("courses", { id: courseId }, { enabled: !!courseId });
   const { data: unit } = useGetOne<AdminUnit>("units", { id: unitId }, { enabled: !!unitId });
@@ -957,6 +962,44 @@ export function ExercisesPage() {
       (typeMap[ex.exercise_type_id] ?? "").toLowerCase().includes(q)
     );
   }, [exercises, search, typeMap]);
+
+  const handleDeleteExercise = async (exerciseId: string) => {
+    if (deletingExerciseId) return;
+
+    try {
+      const deps = await adminFetch<AdminExerciseDependencySummary>(
+        `/api/v1/admin/exercises/${exerciseId}/dependencies`
+      );
+
+      const confirmText = [
+        "Bạn sắp xóa exercise này.",
+        "",
+        "Bảng phụ thuộc:",
+        "- Exercises: 1",
+        `- UserExerciseLog: ${deps.dependent_user_exercise_logs}`,
+        "",
+        "Khi xóa, UserExerciseLog liên quan sẽ bị xóa theo dây chuyền.",
+        "Bạn có chắc chắn muốn tiếp tục?",
+      ].join("\n");
+
+      if (!window.confirm(confirmText)) {
+        return;
+      }
+
+      setDeletingExerciseId(exerciseId);
+      await adminFetch(`/api/v1/admin/exercises/${exerciseId}`, { method: "DELETE" });
+      notify("Exercise deleted", {
+        type: "success",
+        messageArgs: { _: "Exercise deleted" },
+      });
+      refresh();
+    } catch (error) {
+      const message = parseApiError(error);
+      notify(message, { type: "error", messageArgs: { _: message } });
+    } finally {
+      setDeletingExerciseId(null);
+    }
+  };
 
   return (
     <Box sx={{ p: 3, maxWidth: 1000 }}>
@@ -1046,6 +1089,18 @@ export function ExercisesPage() {
                             <EditIcon fontSize="small" />
                           </IconButton>
                         </Tooltip>
+                        <Tooltip title="Delete exercise">
+                          <span>
+                            <IconButton
+                              size="small"
+                              color="error"
+                              disabled={deletingExerciseId === ex.id}
+                              onClick={() => handleDeleteExercise(ex.id)}
+                            >
+                              <DeleteOutlineIcon fontSize="small" />
+                            </IconButton>
+                          </span>
+                        </Tooltip>
                         <MistakesButton exerciseId={ex.id} />
                       </TableCell>
                     </TableRow>
@@ -1073,4 +1128,3 @@ export function ExercisesPage() {
     </Box>
   );
 }
-

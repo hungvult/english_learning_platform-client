@@ -277,3 +277,9 @@ export interface MistakeAnalyticsItem {
   user_answer: string;
   count: number;
 }
+
+export interface AdminExerciseDependencySummary {
+  exercise_id: string;
+  lesson_id: string;
+  dependent_user_exercise_logs: number;
+}
