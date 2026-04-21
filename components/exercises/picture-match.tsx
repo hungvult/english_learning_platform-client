@@ -57,7 +57,7 @@ export function PictureMatch({ data, onAnswer, disabled }: Props) {
                 : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
             )}
           >
-            <div className="relative mb-2 h-24 w-full">
+            <div className="relative mb-2 h-24 w-24">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={resolveOptionImageUrl(opt.image_url)}
