@@ -51,6 +51,7 @@ import {
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import BarChartIcon from "@mui/icons-material/BarChart";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import EditIcon from "@mui/icons-material/Edit";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
@@ -61,8 +62,16 @@ import SchoolIcon from "@mui/icons-material/School";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 
 import { ExerciseEngine } from "@/components/exercises/exercise-engine";
-import { adminFetch } from "@/lib/admin-api";
-import type { AdminCourse, AdminExercise, AdminExerciseType, AdminLesson, AdminUnit, MistakeAnalyticsItem } from "@/types/api";
+import { adminFetch, parseApiError } from "@/lib/admin-api";
+import type {
+  AdminCourse,
+  AdminExercise,
+  AdminExerciseDependencySummary,
+  AdminExerciseType,
+  AdminLesson,
+  AdminUnit,
+  MistakeAnalyticsItem,
+} from "@/types/api";
 import { CEFR_CHOICES, ExerciseDynamicFields, ExerciseSelectAndFields } from "@/components/admin/resources/exercise-fields";
 
 // ---------------------------------------------------------------------------
@@ -107,6 +116,48 @@ const TreeRow = styled(ListItem)(({ theme }) => ({
 
 function ExerciseNode({ exercise, typeName }: { exercise: AdminExercise; typeName: string }) {
   const { openDialog } = useContext(ExplorerCtx);
+  const notify = useNotify();
+  const refresh = useRefresh();
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    if (isDeleting) return;
+
+    try {
+      const deps = await adminFetch<AdminExerciseDependencySummary>(
+        `/api/v1/admin/exercises/${exercise.id}/dependencies`
+      );
+
+      const shouldDelete = window.confirm(
+        [
+          "Ban sap xoa exercise nay.",
+          "",
+          "Bang phu thuoc:",
+          "- Exercises: 1",
+          `- UserExerciseLog: ${deps.dependent_user_exercise_logs}`,
+          "",
+          "Khi xoa, cac UserExerciseLog lien quan se bi xoa theo day chuyen.",
+          "Ban co chac chan muon tiep tuc?",
+        ].join("\n")
+      );
+
+      if (!shouldDelete) return;
+
+      setIsDeleting(true);
+      await adminFetch(`/api/v1/admin/exercises/${exercise.id}`, { method: "DELETE" });
+      notify("Exercise deleted", {
+        type: "success",
+        messageArgs: { _: "Exercise deleted" },
+      });
+      refresh();
+    } catch (error) {
+      const message = parseApiError(error);
+      notify(message, { type: "error", messageArgs: { _: message } });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <TreeRow sx={{ pl: 14 }} disablePadding={false}>
       <ListItemIcon sx={{ minWidth: 28 }}>
@@ -128,6 +179,13 @@ function ExerciseNode({ exercise, typeName }: { exercise: AdminExercise; typeNam
           >
             <EditIcon sx={{ fontSize: 16 }} />
           </IconButton>
+        </Tooltip>
+        <Tooltip title="Delete exercise">
+          <span>
+            <IconButton size="small" onClick={handleDelete} disabled={isDeleting}>
+              <DeleteOutlineIcon sx={{ fontSize: 16 }} />
+            </IconButton>
+          </span>
         </Tooltip>
       </Box>
     </TreeRow>

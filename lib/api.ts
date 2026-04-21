@@ -46,5 +46,25 @@ export async function api<T>(
     throw new Error(text || `HTTP ${res.status}`);
   }
 
-  return res.json() as Promise<T>;
+  // 204/205 responses and some DELETE endpoints intentionally return no body.
+  if (res.status === 204 || res.status === 205) {
+    return undefined as T;
+  }
+
+  const contentType = res.headers.get("content-type") ?? "";
+  const contentLength = res.headers.get("content-length");
+  if (contentLength === "0") {
+    return undefined as T;
+  }
+
+  if (contentType.toLowerCase().includes("application/json")) {
+    return (await res.json()) as T;
+  }
+
+  const text = await res.text();
+  if (!text) {
+    return undefined as T;
+  }
+
+  return text as T;
 }
