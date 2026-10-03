@@ -1,0 +1,40 @@
+# Version control
+.git
+.gitignore
+
+# Environment variables (prevent secret leakage)
+.env*
+!.env.example
+
+# Dependencies & Build artifacts
+**/node_modules
+.next
+out
+.turbo
+build
+dist
+
+# Testing & Coverage
+coverage
+test-results
+playwright-report
+
+# Logs & Cache
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.eslintcache
+.prettiercache
+
+# OS & Editor files
+.DS_Store
+Thumbs.db
+.vscode
+.idea
+
+# Docker & Meta
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+*.md

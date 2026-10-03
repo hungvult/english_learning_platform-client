@@ -1,7 +1,9 @@
 import { AUTH_COOKIE_NAME, getBrowserAuthToken } from "@/lib/auth-token";
 
 const BASE =
-  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+  typeof window === "undefined"
+    ? (process.env.INTERNAL_API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000")
+    : (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000");
 
 const getServerAuthToken = async (): Promise<string | null> => {
   const { cookies } = await import("next/headers");
