@@ -21,8 +21,12 @@ FROM base AS development
 
 ENV NODE_ENV=development
 
-COPY --from=deps /app/node_modules ./node_modules
-COPY . .
+COPY --from=deps --chown=node:node /app/node_modules ./node_modules
+COPY --chown=node:node . .
+
+RUN mkdir -p /app/.next && chown -R node:node /app/.next
+
+USER node
 
 EXPOSE 3000
 

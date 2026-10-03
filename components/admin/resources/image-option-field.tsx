@@ -6,6 +6,7 @@ import { TextInput, useNotify, useSourceContext } from "react-admin";
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Typography } from "@mui/material";
 
 import { adminFetch, parseApiError } from "@/lib/admin-api";
+import { resolveMediaUrl } from "@/lib/media";
 
 type UploadImageResponse = {
   image_url: string;
@@ -30,31 +31,6 @@ type DragState = {
   startY: number;
   origin: CropRect;
 };
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
-
-function resolveImagePreviewUrl(raw: string): string {
-  const value = raw.trim();
-  if (!value) return "";
-
-  if (value.startsWith("http://") || value.startsWith("https://")) {
-    return value;
-  }
-
-  if (value.startsWith("images/")) {
-    return `${API_BASE}/static/${value}`;
-  }
-
-  if (value.startsWith("/static/")) {
-    return `${API_BASE}${value}`;
-  }
-
-  if (value.startsWith("/media/")) {
-    return value;
-  }
-
-  return value;
-}
 
 function isManagedImageUrl(raw: string): boolean {
   return raw.startsWith("images/") || raw.startsWith("/static/images/");
@@ -143,7 +119,7 @@ export function ImageOptionField({ source }: Props) {
     notify(message, { type, messageArgs: { _: message } });
   };
 
-  const previewUrl = useMemo(() => resolveImagePreviewUrl(imageUrl ?? ""), [imageUrl]);
+  const previewUrl = useMemo(() => resolveMediaUrl(imageUrl ?? ""), [imageUrl]);
 
   useEffect(() => {
     return () => {

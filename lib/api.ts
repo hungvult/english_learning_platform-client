@@ -1,9 +1,15 @@
 import { AUTH_COOKIE_NAME, getBrowserAuthToken } from "@/lib/auth-token";
 
-const BASE =
-  typeof window === "undefined"
-    ? (process.env.INTERNAL_API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000")
-    : (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000");
+export function getApiBaseUrl(): string {
+  if (typeof window === "undefined") {
+    return (
+      process.env.INTERNAL_API_URL ||
+      process.env.NEXT_PUBLIC_API_URL ||
+      "http://localhost:8000"
+    );
+  }
+  return process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+}
 
 const getServerAuthToken = async (): Promise<string | null> => {
   const { cookies } = await import("next/headers");
@@ -36,7 +42,10 @@ export async function api<T>(
     headers.set("Authorization", `Bearer ${token}`);
   }
 
-  const res = await fetch(`${BASE}${path}`, {
+  const baseUrl = getApiBaseUrl().replace(/\/$/, "");
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+
+  const res = await fetch(`${baseUrl}${normalizedPath}`, {
     ...init,
     credentials: "include", // sends httpOnly JWT cookie
     cache: init?.cache ?? "no-store",
