@@ -81,7 +81,10 @@ import type {
   AdminUnit,
   MistakeAnalyticsItem,
 } from "@/types/api";
-import { CEFR_CHOICES, ExerciseSelectAndFields } from "@/components/admin/resources/exercise-fields";
+import {
+  CEFR_CHOICES,
+  ExerciseSelectAndFields,
+} from "@/components/admin/resources/exercise-fields";
 
 // ---------------------------------------------------------------------------
 // Swap-order hook  (shared across Units / Lessons / Exercises)
@@ -129,7 +132,10 @@ type Crumb = { label: string; to?: string };
 
 function BreadcrumbNav({ crumbs }: { crumbs: Crumb[] }) {
   return (
-    <Breadcrumbs separator={<NavigateNextIcon fontSize="small" />} sx={{ mb: 1 }}>
+    <Breadcrumbs
+      separator={<NavigateNextIcon fontSize="small" />}
+      sx={{ mb: 1 }}
+    >
       {crumbs.map((c, i) => {
         const isLast = i === crumbs.length - 1;
         const key = c.to ?? c.label;
@@ -176,7 +182,12 @@ function PageHeader({
       <Typography variant="h5" fontWeight={700} sx={{ flex: 1 }}>
         {title}
       </Typography>
-      <Button label={addLabel} startIcon={<AddIcon />} variant="contained" onClick={onAdd} />
+      <Button
+        label={addLabel}
+        startIcon={<AddIcon />}
+        variant="contained"
+        onClick={onAdd}
+      />
     </Box>
   );
 }
@@ -226,11 +237,18 @@ const SaveOnly = () => (
 // Exercise preview button (inside a react-admin Form context)
 // ---------------------------------------------------------------------------
 
-function ExercisePreviewButton({ exerciseTypes }: { exerciseTypes: AdminExerciseType[] }) {
+function ExercisePreviewButton({
+  exerciseTypes,
+}: {
+  exerciseTypes: AdminExerciseType[];
+}) {
   const [open, setOpen] = useState(false);
   const exerciseTypeId = useWatch({ name: "exercise_type_id" });
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const questionData = useWatch({ name: "question_data" }) as Record<string, any> | null;
+  const questionData = useWatch({ name: "question_data" }) as Record<
+    string,
+    any
+  > | null;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const answerData = useWatch({ name: "answer_data" }) as Record<string, any>;
   const lessonId = useWatch({ name: "lesson_id" }) as string;
@@ -257,19 +275,33 @@ function ExercisePreviewButton({ exerciseTypes }: { exerciseTypes: AdminExercise
         variant="outlined"
         sx={{ ml: 1 }}
       />
-      <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
+      <Dialog
+        open={open}
+        onClose={() => setOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
         <DialogTitle>Exercise Preview</DialogTitle>
         <DialogContent dividers>
           <Box sx={{ py: 1 }}>
-            <Chip label={typeName || "—"} size="small" color="primary" sx={{ mb: 2 }} />
+            <Chip
+              label={typeName || "—"}
+              size="small"
+              color="primary"
+              sx={{ mb: 2 }}
+            />
             {typeName ? (
               <ExerciseEngine
-                exercise={preview as Parameters<typeof ExerciseEngine>[0]["exercise"]}
+                exercise={
+                  preview as Parameters<typeof ExerciseEngine>[0]["exercise"]
+                }
                 mode="ADMIN_PREVIEW"
                 onComplete={() => {}}
               />
             ) : (
-              <Typography color="text.secondary">Select an exercise type first.</Typography>
+              <Typography color="text.secondary">
+                Select an exercise type first.
+              </Typography>
             )}
           </Box>
         </DialogContent>
@@ -388,7 +420,9 @@ function ExerciseFormContent({
   return (
     <>
       <ExerciseSelectAndFields exerciseTypes={exerciseTypes} />
-      <Toolbar sx={{ background: "transparent", mt: 1, px: 0, minHeight: 0, gap: 1 }}>
+      <Toolbar
+        sx={{ background: "transparent", mt: 1, px: 0, minHeight: 0, gap: 1 }}
+      >
         <SaveButton />
         <ExercisePreviewButton exerciseTypes={exerciseTypes} />
       </Toolbar>
@@ -405,10 +439,13 @@ function ExerciseFormContent({
 }
 
 function ExerciseFormWithLoader({ exerciseId }: { exerciseId?: string }) {
-  const { data: exerciseTypes = [], isLoading } = useGetList<AdminExerciseType>("exercise-types", {
-    pagination: { page: 1, perPage: 100 },
-    sort: { field: "name", order: "ASC" },
-  });
+  const { data: exerciseTypes = [], isLoading } = useGetList<AdminExerciseType>(
+    "exercise-types",
+    {
+      pagination: { page: 1, perPage: 100 },
+      sort: { field: "name", order: "ASC" },
+    }
+  );
   if (isLoading) {
     return (
       <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
@@ -416,7 +453,12 @@ function ExerciseFormWithLoader({ exerciseId }: { exerciseId?: string }) {
       </Box>
     );
   }
-  return <ExerciseFormContent exerciseTypes={exerciseTypes} exerciseId={exerciseId} />;
+  return (
+    <ExerciseFormContent
+      exerciseTypes={exerciseTypes}
+      exerciseId={exerciseId}
+    />
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -517,7 +559,11 @@ export function CoursesPage() {
         addLabel="Add Course"
         onAdd={() => setDialog({ mode: "create", defaults: {} })}
       />
-      <SearchBox value={search} onChange={setSearch} placeholder="Search by title…" />
+      <SearchBox
+        value={search}
+        onChange={setSearch}
+        placeholder="Search by title…"
+      />
 
       <Paper variant="outlined">
         {isLoading ? (
@@ -545,26 +591,30 @@ export function CoursesPage() {
                   <TableRow>
                     <TableCell colSpan={3}>
                       <Typography color="text.secondary" sx={{ p: 1 }}>
-                        {search ? "No courses match your search." : "No courses yet."}
+                        {search
+                          ? "No courses match your search."
+                          : "No courses yet."}
                       </Typography>
                     </TableCell>
                   </TableRow>
                 ) : (
                   filtered.map((course) => (
-                    <TableRow
-                      key={course.id}
-                      hover
-                      sx={{ cursor: "default" }}
-                    >
+                    <TableRow key={course.id} hover sx={{ cursor: "default" }}>
                       <TableCell>{course.title}</TableCell>
                       <TableCell>
-                        <Chip label={course.expected_cefr_level} size="small" variant="outlined" />
+                        <Chip
+                          label={course.expected_cefr_level}
+                          size="small"
+                          variant="outlined"
+                        />
                       </TableCell>
                       <TableCell align="right" sx={{ whiteSpace: "nowrap" }}>
                         <Tooltip title="Edit course">
                           <IconButton
                             size="small"
-                            onClick={() => setDialog({ mode: "edit", id: course.id })}
+                            onClick={() =>
+                              setDialog({ mode: "edit", id: course.id })
+                            }
                           >
                             <EditIcon fontSize="small" />
                           </IconButton>
@@ -573,7 +623,9 @@ export function CoursesPage() {
                           <IconButton
                             size="small"
                             color="primary"
-                            onClick={() => navigate(`/content/courses/${course.id}/units`)}
+                            onClick={() =>
+                              navigate(`/content/courses/${course.id}/units`)
+                            }
                           >
                             <ArrowForwardIosIcon fontSize="small" />
                           </IconButton>
@@ -609,7 +661,12 @@ function UnitFormContent() {
   return (
     <>
       <TextInput source="title" fullWidth validate={[required()]} />
-      <NumberInput source="order_index" label="Order Index" min={0} validate={[required()]} />
+      <NumberInput
+        source="order_index"
+        label="Order Index"
+        min={0}
+        validate={[required()]}
+      />
       <SaveOnly />
     </>
   );
@@ -622,7 +679,11 @@ export function UnitsPage() {
   const [search, setSearch] = useState("");
   const { swap, swapping } = useSwapOrder("units");
 
-  const { data: course } = useGetOne<AdminCourse>("courses", { id: courseId }, { enabled: !!courseId });
+  const { data: course } = useGetOne<AdminCourse>(
+    "courses",
+    { id: courseId },
+    { enabled: !!courseId }
+  );
   const { data: units, isLoading } = useGetList<AdminUnit>("units", {
     filter: { course_id: courseId },
     pagination: { page: 1, perPage: 200 },
@@ -633,8 +694,13 @@ export function UnitsPage() {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    const base = q && units ? units.filter((u) => u.title.toLowerCase().includes(q)) : (units ?? []);
-    return [...base].sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0));
+    const base =
+      q && units
+        ? units.filter((u) => u.title.toLowerCase().includes(q))
+        : (units ?? []);
+    return [...base].sort(
+      (a, b) => (a.order_index ?? 0) - (b.order_index ?? 0)
+    );
   }, [units, search]);
 
   return (
@@ -648,9 +714,15 @@ export function UnitsPage() {
       <PageHeader
         title={`Units — ${courseName}`}
         addLabel="Add Unit"
-        onAdd={() => setDialog({ mode: "create", defaults: { course_id: courseId } })}
+        onAdd={() =>
+          setDialog({ mode: "create", defaults: { course_id: courseId } })
+        }
       />
-      <SearchBox value={search} onChange={setSearch} placeholder="Search by title…" />
+      <SearchBox
+        value={search}
+        onChange={setSearch}
+        placeholder="Search by title…"
+      />
 
       <Paper variant="outlined">
         {isLoading ? (
@@ -678,7 +750,9 @@ export function UnitsPage() {
                   <TableRow>
                     <TableCell colSpan={3}>
                       <Typography color="text.secondary" sx={{ p: 1 }}>
-                        {search ? "No units match your search." : "No units for this course."}
+                        {search
+                          ? "No units match your search."
+                          : "No units for this course."}
                       </Typography>
                     </TableCell>
                   </TableRow>
@@ -693,7 +767,9 @@ export function UnitsPage() {
                             <IconButton
                               size="small"
                               disabled={idx === 0 || swapping !== null}
-                              onClick={() => swap(unit.id, filtered[idx - 1].id)}
+                              onClick={() =>
+                                swap(unit.id, filtered[idx - 1].id)
+                              }
                             >
                               <KeyboardArrowUpIcon fontSize="small" />
                             </IconButton>
@@ -703,8 +779,12 @@ export function UnitsPage() {
                           <span>
                             <IconButton
                               size="small"
-                              disabled={idx === filtered.length - 1 || swapping !== null}
-                              onClick={() => swap(unit.id, filtered[idx + 1].id)}
+                              disabled={
+                                idx === filtered.length - 1 || swapping !== null
+                              }
+                              onClick={() =>
+                                swap(unit.id, filtered[idx + 1].id)
+                              }
                             >
                               <KeyboardArrowDownIcon fontSize="small" />
                             </IconButton>
@@ -713,7 +793,9 @@ export function UnitsPage() {
                         <Tooltip title="Edit unit">
                           <IconButton
                             size="small"
-                            onClick={() => setDialog({ mode: "edit", id: unit.id })}
+                            onClick={() =>
+                              setDialog({ mode: "edit", id: unit.id })
+                            }
                           >
                             <EditIcon fontSize="small" />
                           </IconButton>
@@ -754,9 +836,6 @@ export function UnitsPage() {
   );
 }
 
-
-
-
 // ---------------------------------------------------------------------------
 // Lessons page  (/content/courses/:courseId/units/:unitId/lessons)
 // ---------------------------------------------------------------------------
@@ -765,21 +844,37 @@ function LessonFormContent() {
   return (
     <>
       <TextInput source="title" fullWidth validate={[required()]} />
-      <NumberInput source="order_index" label="Order Index" min={0} validate={[required()]} />
+      <NumberInput
+        source="order_index"
+        label="Order Index"
+        min={0}
+        validate={[required()]}
+      />
       <SaveOnly />
     </>
   );
 }
 
 export function LessonsPage() {
-  const { courseId = "", unitId = "" } = useParams<{ courseId: string; unitId: string }>();
+  const { courseId = "", unitId = "" } = useParams<{
+    courseId: string;
+    unitId: string;
+  }>();
   const navigate = useNavigate();
   const [dialog, setDialog] = useState<DialogState>(null);
   const [search, setSearch] = useState("");
   const { swap, swapping } = useSwapOrder("lessons");
 
-  const { data: course } = useGetOne<AdminCourse>("courses", { id: courseId }, { enabled: !!courseId });
-  const { data: unit } = useGetOne<AdminUnit>("units", { id: unitId }, { enabled: !!unitId });
+  const { data: course } = useGetOne<AdminCourse>(
+    "courses",
+    { id: courseId },
+    { enabled: !!courseId }
+  );
+  const { data: unit } = useGetOne<AdminUnit>(
+    "units",
+    { id: unitId },
+    { enabled: !!unitId }
+  );
   const { data: lessons, isLoading } = useGetList<AdminLesson>("lessons", {
     filter: { unit_id: unitId },
     pagination: { page: 1, perPage: 200 },
@@ -791,8 +886,13 @@ export function LessonsPage() {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    const base = q && lessons ? lessons.filter((l) => l.title.toLowerCase().includes(q)) : (lessons ?? []);
-    return [...base].sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0));
+    const base =
+      q && lessons
+        ? lessons.filter((l) => l.title.toLowerCase().includes(q))
+        : (lessons ?? []);
+    return [...base].sort(
+      (a, b) => (a.order_index ?? 0) - (b.order_index ?? 0)
+    );
   }, [lessons, search]);
 
   return (
@@ -807,9 +907,15 @@ export function LessonsPage() {
       <PageHeader
         title={`Lessons — ${unitName}`}
         addLabel="Add Lesson"
-        onAdd={() => setDialog({ mode: "create", defaults: { unit_id: unitId } })}
+        onAdd={() =>
+          setDialog({ mode: "create", defaults: { unit_id: unitId } })
+        }
       />
-      <SearchBox value={search} onChange={setSearch} placeholder="Search by title…" />
+      <SearchBox
+        value={search}
+        onChange={setSearch}
+        placeholder="Search by title…"
+      />
 
       <Paper variant="outlined">
         {isLoading ? (
@@ -837,7 +943,9 @@ export function LessonsPage() {
                   <TableRow>
                     <TableCell colSpan={3}>
                       <Typography color="text.secondary" sx={{ p: 1 }}>
-                        {search ? "No lessons match your search." : "No lessons for this unit."}
+                        {search
+                          ? "No lessons match your search."
+                          : "No lessons for this unit."}
                       </Typography>
                     </TableCell>
                   </TableRow>
@@ -852,7 +960,9 @@ export function LessonsPage() {
                             <IconButton
                               size="small"
                               disabled={idx === 0 || swapping !== null}
-                              onClick={() => swap(lesson.id, filtered[idx - 1].id)}
+                              onClick={() =>
+                                swap(lesson.id, filtered[idx - 1].id)
+                              }
                             >
                               <KeyboardArrowUpIcon fontSize="small" />
                             </IconButton>
@@ -862,8 +972,12 @@ export function LessonsPage() {
                           <span>
                             <IconButton
                               size="small"
-                              disabled={idx === filtered.length - 1 || swapping !== null}
-                              onClick={() => swap(lesson.id, filtered[idx + 1].id)}
+                              disabled={
+                                idx === filtered.length - 1 || swapping !== null
+                              }
+                              onClick={() =>
+                                swap(lesson.id, filtered[idx + 1].id)
+                              }
                             >
                               <KeyboardArrowDownIcon fontSize="small" />
                             </IconButton>
@@ -872,7 +986,9 @@ export function LessonsPage() {
                         <Tooltip title="Edit lesson">
                           <IconButton
                             size="small"
-                            onClick={() => setDialog({ mode: "edit", id: lesson.id })}
+                            onClick={() =>
+                              setDialog({ mode: "edit", id: lesson.id })
+                            }
                           >
                             <EditIcon fontSize="small" />
                           </IconButton>
@@ -913,9 +1029,6 @@ export function LessonsPage() {
   );
 }
 
-
-
-
 // ---------------------------------------------------------------------------
 // Exercises page (/content/courses/:courseId/units/:unitId/lessons/:lessonId/exercises)
 // ---------------------------------------------------------------------------
@@ -928,23 +1041,43 @@ export function ExercisesPage() {
   } = useParams<{ courseId: string; unitId: string; lessonId: string }>();
   const [dialog, setDialog] = useState<DialogState>(null);
   const [search, setSearch] = useState("");
-  const [deletingExerciseId, setDeletingExerciseId] = useState<string | null>(null);
+  const [deletingExerciseId, setDeletingExerciseId] = useState<string | null>(
+    null
+  );
   const { swap, swapping } = useSwapOrder("exercises");
   const notify = useNotify();
   const refresh = useRefresh();
 
-  const { data: course } = useGetOne<AdminCourse>("courses", { id: courseId }, { enabled: !!courseId });
-  const { data: unit } = useGetOne<AdminUnit>("units", { id: unitId }, { enabled: !!unitId });
-  const { data: lesson } = useGetOne<AdminLesson>("lessons", { id: lessonId }, { enabled: !!lessonId });
-  const { data: exerciseTypes = [] } = useGetList<AdminExerciseType>("exercise-types", {
-    pagination: { page: 1, perPage: 100 },
-    sort: { field: "name", order: "ASC" },
-  });
-  const { data: exercises, isLoading } = useGetList<AdminExercise>("exercises", {
-    filter: { lesson_id: lessonId },
-    pagination: { page: 1, perPage: 200 },
-    sort: { field: "order_index", order: "ASC" },
-  });
+  const { data: course } = useGetOne<AdminCourse>(
+    "courses",
+    { id: courseId },
+    { enabled: !!courseId }
+  );
+  const { data: unit } = useGetOne<AdminUnit>(
+    "units",
+    { id: unitId },
+    { enabled: !!unitId }
+  );
+  const { data: lesson } = useGetOne<AdminLesson>(
+    "lessons",
+    { id: lessonId },
+    { enabled: !!lessonId }
+  );
+  const { data: exerciseTypes = [] } = useGetList<AdminExerciseType>(
+    "exercise-types",
+    {
+      pagination: { page: 1, perPage: 100 },
+      sort: { field: "name", order: "ASC" },
+    }
+  );
+  const { data: exercises, isLoading } = useGetList<AdminExercise>(
+    "exercises",
+    {
+      filter: { lesson_id: lessonId },
+      pagination: { page: 1, perPage: 200 },
+      sort: { field: "order_index", order: "ASC" },
+    }
+  );
 
   const courseName = course?.title ?? courseId;
   const unitName = unit?.title ?? unitId;
@@ -987,7 +1120,9 @@ export function ExercisesPage() {
       }
 
       setDeletingExerciseId(exerciseId);
-      await adminFetch(`/api/v1/admin/exercises/${exerciseId}`, { method: "DELETE" });
+      await adminFetch(`/api/v1/admin/exercises/${exerciseId}`, {
+        method: "DELETE",
+      });
       notify("Exercise deleted", {
         type: "success",
         messageArgs: { _: "Exercise deleted" },
@@ -1007,16 +1142,25 @@ export function ExercisesPage() {
         crumbs={[
           { label: "Courses", to: "/content/courses" },
           { label: courseName, to: `/content/courses/${courseId}/units` },
-          { label: unitName, to: `/content/courses/${courseId}/units/${unitId}/lessons` },
+          {
+            label: unitName,
+            to: `/content/courses/${courseId}/units/${unitId}/lessons`,
+          },
           { label: lessonName },
         ]}
       />
       <PageHeader
         title={`Exercises — ${lessonName}`}
         addLabel="Add Exercise"
-        onAdd={() => setDialog({ mode: "create", defaults: { lesson_id: lessonId } })}
+        onAdd={() =>
+          setDialog({ mode: "create", defaults: { lesson_id: lessonId } })
+        }
       />
-      <SearchBox value={search} onChange={setSearch} placeholder="Search by type…" />
+      <SearchBox
+        value={search}
+        onChange={setSearch}
+        placeholder="Search by type…"
+      />
 
       <Paper variant="outlined">
         {isLoading ? (
@@ -1042,7 +1186,9 @@ export function ExercisesPage() {
                   <TableRow>
                     <TableCell colSpan={3}>
                       <Typography color="text.secondary" sx={{ p: 1 }}>
-                        {search ? "No exercises match your search." : "No exercises for this lesson."}
+                        {search
+                          ? "No exercises match your search."
+                          : "No exercises for this lesson."}
                       </Typography>
                     </TableCell>
                   </TableRow>
@@ -1074,7 +1220,9 @@ export function ExercisesPage() {
                           <span>
                             <IconButton
                               size="small"
-                              disabled={idx === filtered.length - 1 || swapping !== null}
+                              disabled={
+                                idx === filtered.length - 1 || swapping !== null
+                              }
                               onClick={() => swap(ex.id, filtered[idx + 1].id)}
                             >
                               <KeyboardArrowDownIcon fontSize="small" />
@@ -1084,7 +1232,9 @@ export function ExercisesPage() {
                         <Tooltip title="Edit exercise">
                           <IconButton
                             size="small"
-                            onClick={() => setDialog({ mode: "edit", id: ex.id })}
+                            onClick={() =>
+                              setDialog({ mode: "edit", id: ex.id })
+                            }
                           >
                             <EditIcon fontSize="small" />
                           </IconButton>

@@ -72,7 +72,11 @@ import type {
   AdminUnit,
   MistakeAnalyticsItem,
 } from "@/types/api";
-import { CEFR_CHOICES, ExerciseDynamicFields, ExerciseSelectAndFields } from "@/components/admin/resources/exercise-fields";
+import {
+  CEFR_CHOICES,
+  ExerciseDynamicFields,
+  ExerciseSelectAndFields,
+} from "@/components/admin/resources/exercise-fields";
 
 // ---------------------------------------------------------------------------
 // Dialog state – discriminated union per resource / action
@@ -93,7 +97,9 @@ type DialogState =
 // Context – avoids prop-drilling openDialog down the tree
 // ---------------------------------------------------------------------------
 
-const ExplorerCtx = createContext<{ openDialog: (s: Exclude<DialogState, null>) => void }>({
+const ExplorerCtx = createContext<{
+  openDialog: (s: Exclude<DialogState, null>) => void;
+}>({
   openDialog: () => {},
 });
 
@@ -114,7 +120,13 @@ const TreeRow = styled(ListItem)(({ theme }) => ({
 // Exercise node (leaf)
 // ---------------------------------------------------------------------------
 
-function ExerciseNode({ exercise, typeName }: { exercise: AdminExercise; typeName: string }) {
+function ExerciseNode({
+  exercise,
+  typeName,
+}: {
+  exercise: AdminExercise;
+  typeName: string;
+}) {
   const { openDialog } = useContext(ExplorerCtx);
   const notify = useNotify();
   const refresh = useRefresh();
@@ -144,7 +156,9 @@ function ExerciseNode({ exercise, typeName }: { exercise: AdminExercise; typeNam
       if (!shouldDelete) return;
 
       setIsDeleting(true);
-      await adminFetch(`/api/v1/admin/exercises/${exercise.id}`, { method: "DELETE" });
+      await adminFetch(`/api/v1/admin/exercises/${exercise.id}`, {
+        method: "DELETE",
+      });
       notify("Exercise deleted", {
         type: "success",
         messageArgs: { _: "Exercise deleted" },
@@ -165,7 +179,12 @@ function ExerciseNode({ exercise, typeName }: { exercise: AdminExercise; typeNam
       </ListItemIcon>
       <ListItemText
         primary={
-          <Chip label={typeName} size="small" variant="outlined" sx={{ fontSize: 11 }} />
+          <Chip
+            label={typeName}
+            size="small"
+            variant="outlined"
+            sx={{ fontSize: 11 }}
+          />
         }
         sx={{ my: 0 }}
       />
@@ -174,7 +193,11 @@ function ExerciseNode({ exercise, typeName }: { exercise: AdminExercise; typeNam
           <IconButton
             size="small"
             onClick={() =>
-              openDialog({ kind: "edit-exercise", id: exercise.id, record: exercise })
+              openDialog({
+                kind: "edit-exercise",
+                id: exercise.id,
+                record: exercise,
+              })
             }
           >
             <EditIcon sx={{ fontSize: 16 }} />
@@ -182,7 +205,11 @@ function ExerciseNode({ exercise, typeName }: { exercise: AdminExercise; typeNam
         </Tooltip>
         <Tooltip title="Delete exercise">
           <span>
-            <IconButton size="small" onClick={handleDelete} disabled={isDeleting}>
+            <IconButton
+              size="small"
+              onClick={handleDelete}
+              disabled={isDeleting}
+            >
               <DeleteOutlineIcon sx={{ fontSize: 16 }} />
             </IconButton>
           </span>
@@ -197,14 +224,20 @@ function ExerciseNode({ exercise, typeName }: { exercise: AdminExercise; typeNam
 // ---------------------------------------------------------------------------
 
 function ExerciseTreeList({ lessonId }: { lessonId: string }) {
-  const { data: exerciseTypes = [] } = useGetList<AdminExerciseType>("exercise-types", {
-    pagination: { page: 1, perPage: 100 },
-  });
-  const { data: exercises, isLoading } = useGetList<AdminExercise>("exercises", {
-    filter: { lesson_id: lessonId },
-    pagination: { page: 1, perPage: 200 },
-    sort: { field: "id", order: "ASC" },
-  });
+  const { data: exerciseTypes = [] } = useGetList<AdminExerciseType>(
+    "exercise-types",
+    {
+      pagination: { page: 1, perPage: 100 },
+    }
+  );
+  const { data: exercises, isLoading } = useGetList<AdminExercise>(
+    "exercises",
+    {
+      filter: { lesson_id: lessonId },
+      pagination: { page: 1, perPage: 200 },
+      sort: { field: "id", order: "ASC" },
+    }
+  );
 
   if (isLoading) return <CircularProgress size={14} sx={{ ml: 14, my: 0.5 }} />;
 
@@ -213,10 +246,18 @@ function ExerciseTreeList({ lessonId }: { lessonId: string }) {
   return (
     <List disablePadding>
       {exercises?.map((ex) => (
-        <ExerciseNode key={ex.id} exercise={ex} typeName={typeMap[ex.exercise_type_id] ?? "?"} />
+        <ExerciseNode
+          key={ex.id}
+          exercise={ex}
+          typeName={typeMap[ex.exercise_type_id] ?? "?"}
+        />
       ))}
       {!exercises?.length && (
-        <Typography variant="caption" color="text.secondary" sx={{ pl: 14, display: "block" }}>
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          sx={{ pl: 14, display: "block" }}
+        >
           No exercises
         </Typography>
       )}
@@ -235,7 +276,11 @@ function LessonNode({ lesson }: { lesson: AdminLesson }) {
   return (
     <>
       <TreeRow sx={{ pl: 9 }} disablePadding={false}>
-        <IconButton size="small" onClick={() => setExpanded((v) => !v)} sx={{ mr: 0.5 }}>
+        <IconButton
+          size="small"
+          onClick={() => setExpanded((v) => !v)}
+          sx={{ mr: 0.5 }}
+        >
           {expanded ? (
             <ExpandLessIcon sx={{ fontSize: 16 }} />
           ) : (
@@ -261,7 +306,11 @@ function LessonNode({ lesson }: { lesson: AdminLesson }) {
             <IconButton
               size="small"
               onClick={() =>
-                openDialog({ kind: "edit-lesson", id: lesson.id, record: lesson })
+                openDialog({
+                  kind: "edit-lesson",
+                  id: lesson.id,
+                  record: lesson,
+                })
               }
             >
               <EditIcon sx={{ fontSize: 16 }} />
@@ -270,7 +319,9 @@ function LessonNode({ lesson }: { lesson: AdminLesson }) {
           <Tooltip title="Add exercise">
             <IconButton
               size="small"
-              onClick={() => openDialog({ kind: "create-exercise", lesson_id: lesson.id })}
+              onClick={() =>
+                openDialog({ kind: "create-exercise", lesson_id: lesson.id })
+              }
             >
               <AddIcon sx={{ fontSize: 16 }} />
             </IconButton>
@@ -299,9 +350,15 @@ function LessonTreeList({ unitId }: { unitId: string }) {
 
   return (
     <List disablePadding>
-      {lessons?.map((l) => <LessonNode key={l.id} lesson={l} />)}
+      {lessons?.map((l) => (
+        <LessonNode key={l.id} lesson={l} />
+      ))}
       {!lessons?.length && (
-        <Typography variant="caption" color="text.secondary" sx={{ pl: 9, display: "block" }}>
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          sx={{ pl: 9, display: "block" }}
+        >
           No lessons
         </Typography>
       )}
@@ -320,7 +377,11 @@ function UnitNode({ unit }: { unit: AdminUnit }) {
   return (
     <>
       <TreeRow sx={{ pl: 5 }} disablePadding={false}>
-        <IconButton size="small" onClick={() => setExpanded((v) => !v)} sx={{ mr: 0.5 }}>
+        <IconButton
+          size="small"
+          onClick={() => setExpanded((v) => !v)}
+          sx={{ mr: 0.5 }}
+        >
           {expanded ? (
             <ExpandLessIcon sx={{ fontSize: 16 }} />
           ) : (
@@ -345,7 +406,9 @@ function UnitNode({ unit }: { unit: AdminUnit }) {
           <Tooltip title="Edit unit">
             <IconButton
               size="small"
-              onClick={() => openDialog({ kind: "edit-unit", id: unit.id, record: unit })}
+              onClick={() =>
+                openDialog({ kind: "edit-unit", id: unit.id, record: unit })
+              }
             >
               <EditIcon sx={{ fontSize: 16 }} />
             </IconButton>
@@ -353,7 +416,9 @@ function UnitNode({ unit }: { unit: AdminUnit }) {
           <Tooltip title="Add lesson">
             <IconButton
               size="small"
-              onClick={() => openDialog({ kind: "create-lesson", unit_id: unit.id })}
+              onClick={() =>
+                openDialog({ kind: "create-lesson", unit_id: unit.id })
+              }
             >
               <AddIcon sx={{ fontSize: 16 }} />
             </IconButton>
@@ -382,9 +447,15 @@ function UnitTreeList({ courseId }: { courseId: string }) {
 
   return (
     <List disablePadding>
-      {units?.map((u) => <UnitNode key={u.id} unit={u} />)}
+      {units?.map((u) => (
+        <UnitNode key={u.id} unit={u} />
+      ))}
       {!units?.length && (
-        <Typography variant="caption" color="text.secondary" sx={{ pl: 5, display: "block" }}>
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          sx={{ pl: 5, display: "block" }}
+        >
           No units
         </Typography>
       )}
@@ -403,7 +474,11 @@ function CourseNode({ course }: { course: AdminCourse }) {
   return (
     <>
       <TreeRow sx={{ pl: 1 }} disablePadding={false}>
-        <IconButton size="small" onClick={() => setExpanded((v) => !v)} sx={{ mr: 0.5 }}>
+        <IconButton
+          size="small"
+          onClick={() => setExpanded((v) => !v)}
+          sx={{ mr: 0.5 }}
+        >
           {expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
         </IconButton>
         <ListItemIcon sx={{ minWidth: 32 }}>
@@ -425,7 +500,11 @@ function CourseNode({ course }: { course: AdminCourse }) {
             <IconButton
               size="small"
               onClick={() =>
-                openDialog({ kind: "edit-course", id: course.id, record: course })
+                openDialog({
+                  kind: "edit-course",
+                  id: course.id,
+                  record: course,
+                })
               }
             >
               <EditIcon fontSize="small" />
@@ -434,7 +513,9 @@ function CourseNode({ course }: { course: AdminCourse }) {
           <Tooltip title="Add unit">
             <IconButton
               size="small"
-              onClick={() => openDialog({ kind: "create-unit", course_id: course.id })}
+              onClick={() =>
+                openDialog({ kind: "create-unit", course_id: course.id })
+              }
             >
               <AddIcon fontSize="small" />
             </IconButton>
@@ -452,11 +533,18 @@ function CourseNode({ course }: { course: AdminCourse }) {
 // Exercise preview button (must be inside a react-admin <Form> context)
 // ---------------------------------------------------------------------------
 
-function InlinePreviewButton({ exerciseTypes }: { exerciseTypes: AdminExerciseType[] }) {
+function InlinePreviewButton({
+  exerciseTypes,
+}: {
+  exerciseTypes: AdminExerciseType[];
+}) {
   const [open, setOpen] = useState(false);
   const exerciseTypeId = useWatch({ name: "exercise_type_id" });
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const questionData = useWatch({ name: "question_data" }) as Record<string, any> | null;
+  const questionData = useWatch({ name: "question_data" }) as Record<
+    string,
+    any
+  > | null;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const answerData = useWatch({ name: "answer_data" }) as Record<string, any>;
   const lessonId = useWatch({ name: "lesson_id" }) as string;
@@ -483,19 +571,33 @@ function InlinePreviewButton({ exerciseTypes }: { exerciseTypes: AdminExerciseTy
         variant="outlined"
         sx={{ ml: 1 }}
       />
-      <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
+      <Dialog
+        open={open}
+        onClose={() => setOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
         <DialogTitle>Exercise Preview</DialogTitle>
         <DialogContent dividers>
           <Box sx={{ py: 1 }}>
-            <Chip label={typeName || "—"} size="small" color="primary" sx={{ mb: 2 }} />
+            <Chip
+              label={typeName || "—"}
+              size="small"
+              color="primary"
+              sx={{ mb: 2 }}
+            />
             {typeName ? (
               <ExerciseEngine
-                exercise={preview as Parameters<typeof ExerciseEngine>[0]["exercise"]}
+                exercise={
+                  preview as Parameters<typeof ExerciseEngine>[0]["exercise"]
+                }
                 mode="ADMIN_PREVIEW"
                 onComplete={() => {}}
               />
             ) : (
-              <Typography color="text.secondary">Select an exercise type first.</Typography>
+              <Typography color="text.secondary">
+                Select an exercise type first.
+              </Typography>
             )}
           </Box>
         </DialogContent>
@@ -540,7 +642,12 @@ function MistakesSection({ exerciseId }: { exerciseId: string }) {
         color="warning"
         sx={{ ml: 1 }}
       />
-      <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
+      <Dialog
+        open={open}
+        onClose={() => setOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
         <DialogTitle>Common Wrong Answers</DialogTitle>
         <DialogContent dividers>
           {loading ? (
@@ -598,7 +705,12 @@ const CourseFields = () => (
 const UnitFields = () => (
   <>
     <TextInput source="title" fullWidth validate={[required()]} />
-    <NumberInput source="order_index" label="Order Index" min={0} validate={[required()]} />
+    <NumberInput
+      source="order_index"
+      label="Order Index"
+      min={0}
+      validate={[required()]}
+    />
   </>
 );
 
@@ -611,7 +723,12 @@ const LessonFields = () => (
       fullWidth
       validate={[required()]}
     />
-    <NumberInput source="order_index" label="Order Index" min={0} validate={[required()]} />
+    <NumberInput
+      source="order_index"
+      label="Order Index"
+      min={0}
+      validate={[required()]}
+    />
   </>
 );
 
@@ -625,7 +742,15 @@ function ExerciseFields({
   return (
     <>
       <ExerciseSelectAndFields exerciseTypes={exerciseTypes} />
-      <Toolbar sx={{ backgroundColor: "transparent", mt: 1, px: 0, minHeight: 0, gap: 1 }}>
+      <Toolbar
+        sx={{
+          backgroundColor: "transparent",
+          mt: 1,
+          px: 0,
+          minHeight: 0,
+          gap: 1,
+        }}
+      >
         <SaveButton />
         <InlinePreviewButton exerciseTypes={exerciseTypes} />
         {exerciseId && <MistakesSection exerciseId={exerciseId} />}
@@ -639,10 +764,13 @@ function ExerciseFields({
 // ---------------------------------------------------------------------------
 
 function ExerciseFieldsWithLoader({ exerciseId }: { exerciseId?: string }) {
-  const { data: exerciseTypes = [], isLoading } = useGetList<AdminExerciseType>("exercise-types", {
-    pagination: { page: 1, perPage: 100 },
-    sort: { field: "name", order: "ASC" },
-  });
+  const { data: exerciseTypes = [], isLoading } = useGetList<AdminExerciseType>(
+    "exercise-types",
+    {
+      pagination: { page: 1, perPage: 100 },
+      sort: { field: "name", order: "ASC" },
+    }
+  );
 
   if (isLoading) {
     return (
@@ -651,7 +779,9 @@ function ExerciseFieldsWithLoader({ exerciseId }: { exerciseId?: string }) {
       </Box>
     );
   }
-  return <ExerciseFields exerciseTypes={exerciseTypes} exerciseId={exerciseId} />;
+  return (
+    <ExerciseFields exerciseTypes={exerciseTypes} exerciseId={exerciseId} />
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -686,14 +816,14 @@ function FormFields({ dialog }: FormFieldsProps) {
 
 /** Maps each dialog kind to the correct plural resource name and display label. */
 const DIALOG_META: Record<string, { resource: string; label: string }> = {
-  "create-course":   { resource: "courses",   label: "Course" },
-  "edit-course":     { resource: "courses",   label: "Course" },
-  "create-unit":     { resource: "units",     label: "Unit" },
-  "edit-unit":       { resource: "units",     label: "Unit" },
-  "create-lesson":   { resource: "lessons",   label: "Lesson" },
-  "edit-lesson":     { resource: "lessons",   label: "Lesson" },
+  "create-course": { resource: "courses", label: "Course" },
+  "edit-course": { resource: "courses", label: "Course" },
+  "create-unit": { resource: "units", label: "Unit" },
+  "edit-unit": { resource: "units", label: "Unit" },
+  "create-lesson": { resource: "lessons", label: "Lesson" },
+  "edit-lesson": { resource: "lessons", label: "Lesson" },
   "create-exercise": { resource: "exercises", label: "Exercise" },
-  "edit-exercise":   { resource: "exercises", label: "Exercise" },
+  "edit-exercise": { resource: "exercises", label: "Exercise" },
 };
 
 function ContentDialog({
@@ -707,7 +837,10 @@ function ContentDialog({
 
   if (!dialog) return null;
 
-  const { resource, label } = DIALOG_META[dialog.kind] ?? { resource: dialog.kind, label: dialog.kind };
+  const { resource, label } = DIALOG_META[dialog.kind] ?? {
+    resource: dialog.kind,
+    label: dialog.kind,
+  };
   const isCreate = dialog.kind.startsWith("create-");
   const title = `${isCreate ? "Create" : "Edit"} ${label}`;
 
@@ -728,7 +861,9 @@ function ContentDialog({
   // Exercises render their own Toolbar inside ExerciseFields.
   const simpleToolbar =
     resource !== "exercises" ? (
-      <Toolbar sx={{ backgroundColor: "transparent", mt: 1, px: 0, minHeight: 0 }}>
+      <Toolbar
+        sx={{ backgroundColor: "transparent", mt: 1, px: 0, minHeight: 0 }}
+      >
         <SaveButton />
       </Toolbar>
     ) : null;
@@ -789,7 +924,8 @@ function CourseTreeList() {
   if (!courses?.length) {
     return (
       <Typography color="text.secondary" sx={{ p: 2 }}>
-        No courses yet. Click <strong>+ Add Course</strong> above to get started.
+        No courses yet. Click <strong>+ Add Course</strong> above to get
+        started.
       </Typography>
     );
   }
@@ -836,7 +972,10 @@ export function ContentExplorer() {
             { color: "warning.main", label: "Lesson" },
             { color: "text.secondary", label: "Exercise" },
           ].map(({ color, label }) => (
-            <Box key={label} sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+            <Box
+              key={label}
+              sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
+            >
               <FolderIcon sx={{ fontSize: 14, color }} />
               <Typography variant="caption" color="text.secondary">
                 {label}

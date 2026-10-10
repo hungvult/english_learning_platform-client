@@ -31,11 +31,16 @@ export const Footer = ({
 }: FooterProps) => {
   const { t } = useLocale();
 
-  useKey("Enter", () => {
-    if (!disabled) {
-      onCheck();
-    }
-  }, {}, [onCheck, disabled]);
+  useKey(
+    "Enter",
+    () => {
+      if (!disabled) {
+        onCheck();
+      }
+    },
+    {},
+    [onCheck, disabled]
+  );
   const isMobile = useMedia("(max-width: 1024px)", false); // Provide a default for SSR
   const [mounted, setMounted] = useState(false);
 
@@ -51,11 +56,11 @@ export const Footer = ({
         "h-[100px] border-t-2 lg:h-[140px]",
         status === "correct" && "border-transparent bg-green-100",
         status === "wrong" && "border-transparent bg-rose-100",
-        (status === "skipped" || status === "warning") && "border-transparent bg-yellow-100"
+        (status === "skipped" || status === "warning") &&
+          "border-transparent bg-yellow-100"
       )}
     >
       <div className="mx-auto flex h-full max-w-[1140px] items-center justify-between px-6 lg:px-10">
-
         {/* Left section for correct/wrong/completed status */}
         <div className="flex flex-col">
           {status === "correct" && (
@@ -88,8 +93,11 @@ export const Footer = ({
                 {skippedMessage || t.tryAgain}
               </div>
               {correctAnswerText && (
-                <div className="mt-2 text-sm font-medium text-rose-500/80 lg:text-base lg:ml-14">
-                  {t.correctSolution} <span className="font-bold text-rose-500">{correctAnswerText}</span>
+                <div className="mt-2 text-sm font-medium text-rose-500/80 lg:ml-14 lg:text-base">
+                  {t.correctSolution}{" "}
+                  <span className="font-bold text-rose-500">
+                    {correctAnswerText}
+                  </span>
                 </div>
               )}
             </div>
@@ -128,7 +136,8 @@ export const Footer = ({
         >
           {status === "none" && t.check}
           {(status === "correct" || status === "skipped") && t.next}
-          {(status === "wrong" || status === "warning") && (isPreview ? t.next : t.retry)}
+          {(status === "wrong" || status === "warning") &&
+            (isPreview ? t.next : t.retry)}
           {status === "completed" && t.continue}
         </Button>
       </div>

@@ -21,7 +21,9 @@ const QuestsPage = async () => {
 
   if (!userProgress || !userProgress.activeCourse) redirect("/setup");
 
-  const t = getTranslations(getLocaleFromCourse(userProgress.activeCourse?.title));
+  const t = getTranslations(
+    getLocaleFromCourse(userProgress.activeCourse?.title)
+  );
 
   return (
     <div className="flex flex-row-reverse gap-[48px] px-6">

@@ -22,8 +22,9 @@ export function PictureMatch({ data, onAnswer, disabled }: Props) {
 
   return (
     <div className="flex flex-col gap-y-4">
-
-      <div className="text-center text-2xl font-bold text-neutral-700">{data.word}</div>
+      <div className="text-center text-2xl font-bold text-neutral-700">
+        {data.word}
+      </div>
       <div className="grid grid-cols-2 gap-4">
         {data.options.map((opt) => (
           <button
@@ -49,7 +50,9 @@ export function PictureMatch({ data, onAnswer, disabled }: Props) {
                 }}
               />
             </div>
-            <span className="text-sm font-medium text-neutral-600">{opt.text}</span>
+            <span className="text-sm font-medium text-neutral-600">
+              {opt.text}
+            </span>
           </button>
         ))}
       </div>

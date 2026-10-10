@@ -5,7 +5,11 @@ import { Quests } from "@/components/quests";
 import { StickyWrapper } from "@/components/sticky-wrapper";
 import { UserProgress } from "@/components/user-progress";
 import { api } from "@/lib/api";
-import type { CourseProgress, UnitSummary, UserProgress as UserProgressType } from "@/types/api";
+import type {
+  CourseProgress,
+  UnitSummary,
+  UserProgress as UserProgressType,
+} from "@/types/api";
 
 import { Header } from "./header";
 import { Unit } from "./unit";

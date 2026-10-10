@@ -8,10 +8,7 @@ import { cn } from "@/lib/utils";
 export const Header = () => {
   return (
     <header
-      className={cn(
-        "h-20 w-full border-b-2 border-slate-200 px-4",
-        "mt-0"
-      )}
+      className={cn("h-20 w-full border-b-2 border-slate-200 px-4", "mt-0")}
     >
       <div className="mx-auto flex h-full items-center justify-between lg:max-w-screen-lg">
         <Link href="/" className="flex items-center gap-x-3 pb-7 pl-4 pt-8">

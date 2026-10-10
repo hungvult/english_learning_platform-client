@@ -80,13 +80,7 @@ export function ExerciseEngine({
       );
 
     case "TYPE_HEAR":
-      return (
-        <TypeHear
-          exerciseId={id}
-          exercise={exercise}
-          {...commonProps}
-        />
-      );
+      return <TypeHear exerciseId={id} exercise={exercise} {...commonProps} />;
 
     case "LISTEN_FILL":
       return (
@@ -98,12 +92,7 @@ export function ExerciseEngine({
       );
 
     case "SPEAK_SENTENCE":
-      return (
-        <SpeakSentence
-          exercise={exercise}
-          {...commonProps}
-        />
-      );
+      return <SpeakSentence exercise={exercise} {...commonProps} />;
 
     default:
       return (

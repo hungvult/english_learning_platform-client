@@ -49,13 +49,13 @@ export const CoursesList = ({ courses, activeCourseId }: CoursesListProps) => {
   const otherCourses = courses.filter((c) => c.id !== activeCourseId);
 
   return (
-    <div className="max-w-[912px] px-3 mx-auto pb-10">
+    <div className="mx-auto max-w-[912px] px-3 pb-10">
       {currentlyLearning.length > 0 && (
         <section className="mt-10">
           <h1 className="text-2xl font-bold text-neutral-700">
             {t.currentlyLearning}
           </h1>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mt-6">
+          <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
             {currentlyLearning.map((course) => (
               <CourseCard
                 key={course.id}
@@ -75,7 +75,7 @@ export const CoursesList = ({ courses, activeCourseId }: CoursesListProps) => {
         <h1 className="text-2xl font-bold text-neutral-700">
           {t.continueLearning}
         </h1>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mt-6">
+        <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
           {otherCourses.map((course) => (
             <CourseCard
               key={course.id}
@@ -90,15 +90,13 @@ export const CoursesList = ({ courses, activeCourseId }: CoursesListProps) => {
       </section>
 
       <section className="mt-10">
-        <h1 className="text-2xl font-bold text-neutral-700">
-          {t.addCourse}
-        </h1>
+        <h1 className="text-2xl font-bold text-neutral-700">{t.addCourse}</h1>
         {/* For now, just showing all courses. In a real app we might distinguish available from joined. */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mt-6">
-           {/* Mocking some samples to match the screenshot if needed, or just relying on real data. */}
-           {otherCourses.length === 0 && (
-             <p className="text-neutral-500 italic">{t.noOtherCourses}</p>
-           )}
+        <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+          {/* Mocking some samples to match the screenshot if needed, or just relying on real data. */}
+          {otherCourses.length === 0 && (
+            <p className="italic text-neutral-500">{t.noOtherCourses}</p>
+          )}
         </div>
       </section>
     </div>

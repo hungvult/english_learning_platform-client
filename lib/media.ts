@@ -1,5 +1,6 @@
-const API_BASE =
-  (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000").replace(/\/+$/, "");
+const API_BASE = (
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+).replace(/\/+$/, "");
 
 /**
  * Resolves raw media/image paths to absolute URLs.

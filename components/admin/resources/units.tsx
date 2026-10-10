@@ -25,7 +25,12 @@ const SaveOnlyToolbar = () => (
 );
 
 const unitFilters = [
-  <ReferenceInput key="course_id" source="course_id" reference="courses" alwaysOn>
+  <ReferenceInput
+    key="course_id"
+    source="course_id"
+    reference="courses"
+    alwaysOn
+  >
     <SelectInput label="Filter by Course" optionText="title" />
   </ReferenceInput>,
 ];
@@ -49,7 +54,12 @@ const UnitForm = () => (
       <SelectInput optionText="title" fullWidth validate={[required()]} />
     </ReferenceInput>
     <TextInput source="title" fullWidth validate={[required()]} />
-    <NumberInput source="order_index" label="Order Index" min={0} validate={[required()]} />
+    <NumberInput
+      source="order_index"
+      label="Order Index"
+      min={0}
+      validate={[required()]}
+    />
   </SimpleForm>
 );
 

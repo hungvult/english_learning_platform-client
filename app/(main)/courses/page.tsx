@@ -29,11 +29,11 @@ const CoursesPage = async () => {
   const t = getTranslations(getLocaleFromCourse(activeTitle));
 
   return (
-    <div className="h-full max-w-[912px] mx-auto pb-10">
-      <div className="pt-6 px-3">
+    <div className="mx-auto h-full max-w-[912px] pb-10">
+      <div className="px-3 pt-6">
         <Button variant="ghost" asChild>
           <Link href="/learn">
-            <ArrowLeft className="h-5 w-5 mr-2" />
+            <ArrowLeft className="mr-2 h-5 w-5" />
             {t.returnToLearn}
           </Link>
         </Button>

@@ -279,7 +279,9 @@ export type ExerciseDynamicFieldsProps = {
   exerciseTypes: AdminExerciseType[];
 };
 
-export function ExerciseDynamicFields({ exerciseTypes }: ExerciseDynamicFieldsProps) {
+export function ExerciseDynamicFields({
+  exerciseTypes,
+}: ExerciseDynamicFieldsProps) {
   const exerciseTypeId = useWatch({ name: "exercise_type_id" });
 
   const typeName = useMemo(() => {
@@ -299,7 +301,9 @@ export function ExerciseDynamicFields({ exerciseTypes }: ExerciseDynamicFieldsPr
 // Exercise type select + dynamic fields (used inside a react-admin Form)
 // ---------------------------------------------------------------------------
 
-export function ExerciseSelectAndFields({ exerciseTypes }: ExerciseDynamicFieldsProps) {
+export function ExerciseSelectAndFields({
+  exerciseTypes,
+}: ExerciseDynamicFieldsProps) {
   const typeChoices = exerciseTypes.map((t) => ({ id: t.id, name: t.name }));
   return (
     <>

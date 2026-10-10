@@ -18,7 +18,9 @@ const ProfilePage = () => {
   const router = useRouter();
   const { t } = useLocale();
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [userProgress, setUserProgress] = useState<UserProgressType | null>(null);
+  const [userProgress, setUserProgress] = useState<UserProgressType | null>(
+    null
+  );
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
 
@@ -105,36 +107,33 @@ const ProfilePage = () => {
 
   if (loading) {
     return (
-        <div className="flex h-full w-full items-center justify-center">
-            <span className="text-muted-foreground">{t.loading}</span>
-        </div>
+      <div className="flex h-full w-full items-center justify-center">
+        <span className="text-muted-foreground">{t.loading}</span>
+      </div>
     );
   }
 
   return (
-    <div className="flex flex-col lg:flex-row-reverse gap-[48px] px-6">
+    <div className="flex flex-col gap-[48px] px-6 lg:flex-row-reverse">
       <StickyWrapper>
         {userProgress && userProgress.activeCourse && (
-            <UserProgress
-                activeCourse={userProgress.activeCourse}
-                hearts={userProgress.hearts}
-                points={userProgress.points}
-            />
+          <UserProgress
+            activeCourse={userProgress.activeCourse}
+            hearts={userProgress.hearts}
+            points={userProgress.points}
+          />
         )}
       </StickyWrapper>
 
       <FeedWrapper>
         <div className="flex w-full flex-col gap-y-6">
           <div className="flex items-center gap-x-4">
-            <Image
-              src="/profile.svg"
-              alt="Profile"
-              height={80}
-              width={80}
-            />
+            <Image src="/profile.svg" alt="Profile" height={80} width={80} />
             <div>
-                <h1 className="text-2xl font-bold text-neutral-700">{t.settings}</h1>
-                <p className="text-muted-foreground">{t.manageAccount}</p>
+              <h1 className="text-2xl font-bold text-neutral-700">
+                {t.settings}
+              </h1>
+              <p className="text-muted-foreground">{t.manageAccount}</p>
             </div>
           </div>
 
@@ -142,32 +141,44 @@ const ProfilePage = () => {
 
           <form onSubmit={onUpdate} className="flex w-full flex-col gap-y-4">
             <div className="flex flex-col gap-y-2">
-              <label className="text-sm font-bold text-neutral-600">{t.username}</label>
+              <label className="text-sm font-bold text-neutral-600">
+                {t.username}
+              </label>
               <input
                 className="rounded-xl border-2 border-b-4 bg-neutral-100 p-3 outline-none focus:border-green-600 active:border-b-2"
                 value={formData.username}
-                onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, username: e.target.value })
+                }
                 required
               />
             </div>
 
             <div className="flex flex-col gap-y-2">
-              <label className="text-sm font-bold text-neutral-600">{t.email}</label>
+              <label className="text-sm font-bold text-neutral-600">
+                {t.email}
+              </label>
               <input
                 type="email"
                 className="rounded-xl border-2 border-b-4 bg-neutral-100 p-3 outline-none focus:border-green-600 active:border-b-2"
                 value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
                 required
               />
             </div>
 
             <div className="flex flex-col gap-y-2">
-              <label className="text-sm font-bold text-neutral-600">{t.cefrLevel}</label>
+              <label className="text-sm font-bold text-neutral-600">
+                {t.cefrLevel}
+              </label>
               <select
                 className="rounded-xl border-2 border-b-4 bg-neutral-100 p-3 outline-none focus:border-green-600 active:border-b-2"
                 value={formData.cefr_level}
-                onChange={(e) => setFormData({ ...formData, cefr_level: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, cefr_level: e.target.value })
+                }
               >
                 <option value="">{t.selectLevel}</option>
                 <option value="A1">A1 - Junior</option>
@@ -180,47 +191,55 @@ const ProfilePage = () => {
             </div>
 
             <div className="flex flex-col gap-y-2">
-                <label className="text-sm font-bold text-neutral-600">{t.newPassword}</label>
-                <input
-                    type="password"
-                    autoComplete="new-password"
-                    className="rounded-xl border-2 border-b-4 bg-neutral-100 p-3 outline-none focus:border-green-600 active:border-b-2"
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                />
+              <label className="text-sm font-bold text-neutral-600">
+                {t.newPassword}
+              </label>
+              <input
+                type="password"
+                autoComplete="new-password"
+                className="rounded-xl border-2 border-b-4 bg-neutral-100 p-3 outline-none focus:border-green-600 active:border-b-2"
+                value={formData.password}
+                onChange={(e) =>
+                  setFormData({ ...formData, password: e.target.value })
+                }
+              />
             </div>
 
             <div className="flex flex-col gap-y-2">
-                <label className="text-sm font-bold text-neutral-600">{t.confirmPassword}</label>
-                <input
-                    type="password"
-                    autoComplete="new-password"
-                    className="rounded-xl border-2 border-b-4 bg-neutral-100 p-3 outline-none focus:border-green-600 active:border-b-2"
-                    value={formData.confirmPassword}
-                    onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                />
+              <label className="text-sm font-bold text-neutral-600">
+                {t.confirmPassword}
+              </label>
+              <input
+                type="password"
+                autoComplete="new-password"
+                className="rounded-xl border-2 border-b-4 bg-neutral-100 p-3 outline-none focus:border-green-600 active:border-b-2"
+                value={formData.confirmPassword}
+                onChange={(e) =>
+                  setFormData({ ...formData, confirmPassword: e.target.value })
+                }
+              />
             </div>
 
             <Button
-                type="submit"
-                disabled={updating}
-                size="lg"
-                className="w-full mt-4"
-                variant="secondary"
+              type="submit"
+              disabled={updating}
+              size="lg"
+              className="mt-4 w-full"
+              variant="secondary"
             >
-                {updating ? t.saving : t.saveChanges}
+              {updating ? t.saving : t.saveChanges}
             </Button>
 
             <Separator className="my-4" />
 
             <Button
-                type="button"
-                onClick={onLogout}
-                size="lg"
-                variant="danger"
-                className="w-full"
+              type="button"
+              onClick={onLogout}
+              size="lg"
+              variant="danger"
+              className="w-full"
             >
-                {t.signOut}
+              {t.signOut}
             </Button>
           </form>
         </div>

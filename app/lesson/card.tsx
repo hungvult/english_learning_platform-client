@@ -88,7 +88,9 @@ export const Card = ({
           className={cn(
             "flex h-[20px] w-[20px] items-center justify-center rounded-lg border-2 text-xs font-semibold text-neutral-400 lg:h-[30px] lg:w-[30px] lg:text-[15px]",
             selected && "border-sky-300 text-sky-500",
-            selected && status === "correct" && "border-green-500 text-green-500",
+            selected &&
+              status === "correct" &&
+              "border-green-500 text-green-500",
             selected && status === "wrong" && "border-rose-500 text-rose-500"
           )}
         >

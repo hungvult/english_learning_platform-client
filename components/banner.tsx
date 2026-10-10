@@ -47,9 +47,7 @@ const Banner = ({ hide, setHide }: BannerProps) => {
         <div className="flex items-center justify-center">
           <p className="text-sm font-normal">
             🚀{" "}
-            <strong className="font-semibold">
-              English Learning Platform
-            </strong>{" "}
+            <strong className="font-semibold">English Learning Platform</strong>{" "}
             — Learn smarter, one lesson at a time.
           </p>
         </div>

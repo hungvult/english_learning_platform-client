@@ -58,14 +58,12 @@ export function TypeHear({ exerciseId, exercise, onAnswer, disabled }: Props) {
 
   return (
     <div className="flex flex-col gap-y-4">
-
-
       {/* Audio playback controls */}
       <div className="flex justify-center gap-3">
         <button
           onClick={() => playAudio(1)}
           disabled={playing}
-          className="flex items-center justify-center h-16 w-16 rounded-2xl border-2 border-slate-200 font-medium transition hover:border-sky-300 hover:bg-sky-50"
+          className="flex h-16 w-16 items-center justify-center rounded-2xl border-2 border-slate-200 font-medium transition hover:border-sky-300 hover:bg-sky-50"
         >
           {playing && speed === 1 ? (
             <Loader className="h-8 w-8 animate-spin text-sky-500" />
@@ -76,7 +74,7 @@ export function TypeHear({ exerciseId, exercise, onAnswer, disabled }: Props) {
         <button
           onClick={() => playAudio(0.5)}
           disabled={playing}
-          className="flex items-center justify-center h-16 w-16 rounded-2xl border-2 border-slate-200 font-medium transition hover:border-sky-300 hover:bg-sky-50"
+          className="flex h-16 w-16 items-center justify-center rounded-2xl border-2 border-slate-200 font-medium transition hover:border-sky-300 hover:bg-sky-50"
         >
           {playing && speed === 0.5 ? (
             <Loader className="h-8 w-8 animate-spin text-sky-500" />

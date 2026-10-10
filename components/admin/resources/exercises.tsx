@@ -41,9 +41,7 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import { ExerciseEngine } from "@/components/exercises/exercise-engine";
 import { adminFetch } from "@/lib/admin-api";
 import type { AdminExerciseType, MistakeAnalyticsItem } from "@/types/api";
-import {
-  ExerciseDynamicFields,
-} from "@/components/admin/resources/exercise-fields";
+import { ExerciseDynamicFields } from "@/components/admin/resources/exercise-fields";
 
 // ---------------------------------------------------------------------------
 // Shared toolbar (no delete)
@@ -79,15 +77,24 @@ function PreviewDialog({ open, onClose, exercise }: PreviewDialogProps) {
       <DialogTitle>Exercise Preview</DialogTitle>
       <DialogContent dividers>
         <Box sx={{ py: 1 }}>
-          <Chip label={exercise.type} size="small" color="primary" sx={{ mb: 2 }} />
+          <Chip
+            label={exercise.type}
+            size="small"
+            color="primary"
+            sx={{ mb: 2 }}
+          />
           {exercise.type ? (
             <ExerciseEngine
-              exercise={exercise as Parameters<typeof ExerciseEngine>[0]["exercise"]}
+              exercise={
+                exercise as Parameters<typeof ExerciseEngine>[0]["exercise"]
+              }
               mode="ADMIN_PREVIEW"
               onComplete={() => {}}
             />
           ) : (
-            <Typography color="text.secondary">Select an exercise type first.</Typography>
+            <Typography color="text.secondary">
+              Select an exercise type first.
+            </Typography>
           )}
         </Box>
       </DialogContent>
@@ -132,7 +139,11 @@ function ExercisePreviewButton({ exerciseTypes }: PreviewButtonProps) {
         variant="outlined"
         sx={{ ml: 1 }}
       />
-      <PreviewDialog open={open} onClose={() => setOpen(false)} exercise={previewExercise} />
+      <PreviewDialog
+        open={open}
+        onClose={() => setOpen(false)}
+        exercise={previewExercise}
+      />
     </>
   );
 }
@@ -175,7 +186,12 @@ function MistakesAnalyticsButton() {
         variant="outlined"
         color="warning"
       />
-      <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
+      <Dialog
+        open={open}
+        onClose={() => setOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
         <DialogTitle>Common Wrong Answers</DialogTitle>
         <DialogContent dividers>
           {loading ? (
@@ -256,10 +272,13 @@ function ExerciseForm({ exerciseTypes, isEdit }: ExerciseFormProps) {
 // ---------------------------------------------------------------------------
 
 function ExerciseFormWithTypes({ isEdit }: { isEdit?: boolean }) {
-  const { data: exerciseTypes = [], isLoading } = useGetList<AdminExerciseType>("exercise-types", {
-    pagination: { page: 1, perPage: 100 },
-    sort: { field: "name", order: "ASC" },
-  });
+  const { data: exerciseTypes = [], isLoading } = useGetList<AdminExerciseType>(
+    "exercise-types",
+    {
+      pagination: { page: 1, perPage: 100 },
+      sort: { field: "name", order: "ASC" },
+    }
+  );
 
   if (isLoading) {
     return (
@@ -277,7 +296,12 @@ function ExerciseFormWithTypes({ isEdit }: { isEdit?: boolean }) {
 // ---------------------------------------------------------------------------
 
 const exerciseFilters = [
-  <ReferenceInput key="lesson_id" source="lesson_id" reference="lessons" alwaysOn>
+  <ReferenceInput
+    key="lesson_id"
+    source="lesson_id"
+    reference="lessons"
+    alwaysOn
+  >
     <SelectInput label="Filter by Lesson" optionText="title" />
   </ReferenceInput>,
 ];
@@ -288,7 +312,11 @@ export const ExerciseList = () => (
       <ReferenceField source="lesson_id" reference="lessons" label="Lesson">
         <TextField source="title" />
       </ReferenceField>
-      <ReferenceField source="exercise_type_id" reference="exercise-types" label="Type">
+      <ReferenceField
+        source="exercise_type_id"
+        reference="exercise-types"
+        label="Type"
+      >
         <TextField source="name" />
       </ReferenceField>
       <EditButton />

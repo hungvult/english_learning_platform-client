@@ -9,7 +9,9 @@ import type { UserProfile } from "@/types/api";
 
 export function AdminShell({ children }: PropsWithChildren) {
   const router = useRouter();
-  const [status, setStatus] = useState<"checking" | "allowed" | "denied">("checking");
+  const [status, setStatus] = useState<"checking" | "allowed" | "denied">(
+    "checking"
+  );
 
   useEffect(() => {
     const verifyAdmin = async () => {

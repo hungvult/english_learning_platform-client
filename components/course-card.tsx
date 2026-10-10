@@ -26,14 +26,14 @@ export const CourseCard = ({
       onClick={() => onClick(id)}
       disabled={disabled}
       className={cn(
-        "flex flex-col items-center justify-center p-3 rounded-xl cursor-pointer hover:bg-slate-100 transition",
-        disabled && "opacity-50 cursor-not-allowed"
+        "flex cursor-pointer flex-col items-center justify-center rounded-xl p-3 transition hover:bg-slate-100",
+        disabled && "cursor-not-allowed opacity-50"
       )}
     >
       <div
         className={cn(
-          "relative flex items-center justify-center p-2 rounded-2xl border-2",
-          active ? "border-green-500 border-b-[5px]" : "border-slate-200"
+          "relative flex items-center justify-center rounded-2xl border-2 p-2",
+          active ? "border-b-[5px] border-green-500" : "border-slate-200"
         )}
       >
         <Image
@@ -45,14 +45,12 @@ export const CourseCard = ({
           draggable={false}
         />
         {active && (
-           <div className="absolute top-1 right-1 bg-green-500 rounded-full p-0.5">
-              <Check className="h-3 w-3 text-white" />
-           </div>
+          <div className="absolute right-1 top-1 rounded-full bg-green-500 p-0.5">
+            <Check className="h-3 w-3 text-white" />
+          </div>
         )}
       </div>
-      <p className="mt-2 text-center font-bold text-neutral-600">
-        {title}
-      </p>
+      <p className="mt-2 text-center font-bold text-neutral-600">{title}</p>
     </button>
   );
 };

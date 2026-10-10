@@ -21,7 +21,6 @@ export function CompleteConversation({ data, onAnswer, disabled }: Props) {
 
   return (
     <div className="flex flex-col gap-y-4">
-
       <div className="rounded-xl border-2 border-slate-200 bg-slate-50 px-4 py-3 text-center font-medium text-neutral-700">
         {data.text}
       </div>

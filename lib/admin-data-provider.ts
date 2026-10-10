@@ -74,7 +74,11 @@ export const adminDataProvider: DataProvider = {
   ): Promise<GetListResult<RecordType>> => {
     return wrap(async () => {
       const query = buildQuery(params);
-      const data = await adminApi<RecordType[]>(resource, undefined, `/${query}`.replace("/?", "?"));
+      const data = await adminApi<RecordType[]>(
+        resource,
+        undefined,
+        `/${query}`.replace("/?", "?")
+      );
       return {
         data,
         total: getEstimatedTotal(data.length, params),
@@ -87,7 +91,11 @@ export const adminDataProvider: DataProvider = {
     params: GetOneParams<RecordType>
   ): Promise<GetOneResult<RecordType>> => {
     return wrap(async () => {
-      const data = await adminApi<RecordType>(resource, undefined, `/${params.id}`);
+      const data = await adminApi<RecordType>(
+        resource,
+        undefined,
+        `/${params.id}`
+      );
       return { data };
     });
   },
@@ -98,7 +106,9 @@ export const adminDataProvider: DataProvider = {
   ): Promise<GetManyResult<RecordType>> => {
     return wrap(async () => {
       const records = await Promise.all(
-        params.ids.map((id) => adminApi<RecordType>(resource, undefined, `/${id}`))
+        params.ids.map((id) =>
+          adminApi<RecordType>(resource, undefined, `/${id}`)
+        )
       );
       return { data: records };
     });
@@ -115,7 +125,11 @@ export const adminDataProvider: DataProvider = {
       };
 
       const query = buildQuery({ ...params, filter: filterWithTarget });
-      const data = await adminApi<RecordType[]>(resource, undefined, `/${query}`.replace("/?", "?"));
+      const data = await adminApi<RecordType[]>(
+        resource,
+        undefined,
+        `/${query}`.replace("/?", "?")
+      );
 
       return {
         data,
@@ -126,7 +140,7 @@ export const adminDataProvider: DataProvider = {
 
   create: async <
     RecordType extends Omit<RaRecord, "id"> = any,
-    ResultRecordType extends RaRecord = RecordType & { id: Identifier }
+    ResultRecordType extends RaRecord = RecordType & { id: Identifier },
   >(
     resource: string,
     params: CreateParams

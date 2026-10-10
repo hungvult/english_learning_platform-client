@@ -211,18 +211,13 @@ export const Quiz = ({
   }
 
   const title =
-    challenge.type === "ASSIST"
-      ? t.selectCorrectMeaning
-      : challenge.question;
+    challenge.type === "ASSIST" ? t.selectCorrectMeaning : challenge.question;
 
   return (
     <>
       {incorrectAudio}
       {correctAudio}
-      <Header
-        hearts={hearts}
-        percentage={percentage}
-      />
+      <Header hearts={hearts} percentage={percentage} />
 
       <div className="flex-1">
         <div className="flex h-full items-center justify-center">

@@ -56,7 +56,12 @@ const LessonForm = () => (
       helperText="UUID of the lesson form template"
     />
     <TextInput source="title" fullWidth validate={[required()]} />
-    <NumberInput source="order_index" label="Order Index" min={0} validate={[required()]} />
+    <NumberInput
+      source="order_index"
+      label="Order Index"
+      min={0}
+      validate={[required()]}
+    />
   </SimpleForm>
 );
 

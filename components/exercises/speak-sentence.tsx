@@ -52,7 +52,8 @@ export function SpeakSentence({ exercise, onAnswer, disabled }: Props) {
 
       // Use Web Speech API if available
       const SpeechRecognition =
-        (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+        (window as any).SpeechRecognition ||
+        (window as any).webkitSpeechRecognition;
 
       if (SpeechRecognition) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -89,7 +90,9 @@ export function SpeakSentence({ exercise, onAnswer, disabled }: Props) {
         recognition.start();
       } else {
         // Fallback: MediaRecorder without STT
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: true,
+        });
         const recorder = new MediaRecorder(stream);
         mediaRef.current = recorder;
 
@@ -118,19 +121,28 @@ export function SpeakSentence({ exercise, onAnswer, disabled }: Props) {
 
   return (
     <div className="flex flex-col items-center gap-y-6">
-
-
       <div className="flex flex-wrap items-center justify-center gap-1 rounded-xl border-2 border-slate-200 bg-slate-50 px-8 py-4 text-center text-xl font-bold text-neutral-700">
-        {(exercise.answer_data?.expected_text || "").split(" ").map((word: string, i: number) => {
-          const cleanWord = normalizeText(word);
-          const spokenWords = normalizeText(transcript).split(" ").filter(w => w.length > 0);
-          const isSpoken = spokenWords.includes(cleanWord);
-          return (
-            <span key={i} className={isSpoken ? "text-sky-500 transition-colors" : "transition-colors"}>
-              {word}
-            </span>
-          );
-        })}
+        {(exercise.answer_data?.expected_text || "")
+          .split(" ")
+          .map((word: string, i: number) => {
+            const cleanWord = normalizeText(word);
+            const spokenWords = normalizeText(transcript)
+              .split(" ")
+              .filter((w) => w.length > 0);
+            const isSpoken = spokenWords.includes(cleanWord);
+            return (
+              <span
+                key={i}
+                className={
+                  isSpoken
+                    ? "text-sky-500 transition-colors"
+                    : "transition-colors"
+                }
+              >
+                {word}
+              </span>
+            );
+          })}
       </div>
 
       {/* Record button */}
@@ -140,7 +152,7 @@ export function SpeakSentence({ exercise, onAnswer, disabled }: Props) {
         className={cn(
           "flex h-20 w-20 items-center justify-center rounded-full border-4 transition",
           state === "recording"
-            ? "border-red-500 bg-red-50 text-red-500 animate-pulse"
+            ? "animate-pulse border-red-500 bg-red-50 text-red-500"
             : state === "processing"
               ? "border-slate-300 bg-slate-50 text-slate-400"
               : state === "done"
@@ -158,12 +170,16 @@ export function SpeakSentence({ exercise, onAnswer, disabled }: Props) {
       </button>
 
       {state === "recording" && (
-        <p className="text-sm text-red-500 animate-pulse">Recording… tap to stop</p>
+        <p className="animate-pulse text-sm text-red-500">
+          Recording… tap to stop
+        </p>
       )}
 
       {state === "idle" && !transcript && (
         <p className="text-xs text-muted-foreground">
-          {navigator.onLine ? "Tap the mic to start" : "Offline — this exercise will be skipped"}
+          {navigator.onLine
+            ? "Tap the mic to start"
+            : "Offline — this exercise will be skipped"}
         </p>
       )}
     </div>

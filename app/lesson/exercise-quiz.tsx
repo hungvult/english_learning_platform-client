@@ -28,7 +28,10 @@ import { Footer } from "./footer";
 // Format correct answer for display (from server answer_data)
 // ---------------------------------------------------------------------------
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getCorrectAnswerString(exercise: Exercise, answerData: any): string | undefined {
+function getCorrectAnswerString(
+  exercise: Exercise,
+  answerData: any
+): string | undefined {
   if (!answerData) return undefined;
 
   switch (exercise.type) {
@@ -111,11 +114,14 @@ function evaluateExerciseAnswer({
   let isCorrect = false;
 
   if (exercise.type === "COMPLETE_CONVERSATION") {
-    isCorrect = String(rawAnswer) === String(answerData.correct_option_id || "");
+    isCorrect =
+      String(rawAnswer) === String(answerData.correct_option_id || "");
   } else if (exercise.type === "ARRANGE_WORDS") {
     const correct = answerData.correct_sequence || [];
     if (Array.isArray(rawAnswer)) {
-      isCorrect = JSON.stringify(rawAnswer.map(String)) === JSON.stringify(correct.map(String));
+      isCorrect =
+        JSON.stringify(rawAnswer.map(String)) ===
+        JSON.stringify(correct.map(String));
     }
   } else if (exercise.type === "COMPLETE_TRANSLATION") {
     const correct = answerData.correct_words || [];
@@ -125,14 +131,17 @@ function evaluateExerciseAnswer({
         JSON.stringify(correct.map((w: string) => normalizeText(w)));
     }
   } else if (exercise.type === "PICTURE_MATCH") {
-    isCorrect = String(rawAnswer) === String(answerData.correct_option_id || "");
+    isCorrect =
+      String(rawAnswer) === String(answerData.correct_option_id || "");
   } else if (exercise.type === "TYPE_HEAR") {
     const correct = answerData.correct_transcription || "";
     isCorrect = normalizeText(String(rawAnswer)) === normalizeText(correct);
   } else if (exercise.type === "LISTEN_FILL") {
     const correct = answerData.correct_sequence_ids || [];
     if (Array.isArray(rawAnswer)) {
-      isCorrect = JSON.stringify(rawAnswer.map(String)) === JSON.stringify(correct.map(String));
+      isCorrect =
+        JSON.stringify(rawAnswer.map(String)) ===
+        JSON.stringify(correct.map(String));
     }
   } else if (exercise.type === "SPEAK_SENTENCE") {
     const expected = answerData.expected_text || "";
@@ -142,7 +151,9 @@ function evaluateExerciseAnswer({
     const spokenWords = normalizeText(String(rawAnswer))
       .split(" ")
       .filter((w) => w.length > 0);
-    const matchedWordsCount = expectedWords.filter((w) => spokenWords.includes(w)).length;
+    const matchedWordsCount = expectedWords.filter((w) =>
+      spokenWords.includes(w)
+    ).length;
     isCorrect = matchedWordsCount >= Math.ceil(expectedWords.length / 2);
   }
 
@@ -196,7 +207,12 @@ export function ExerciseQuiz({
   const router = useRouter();
   const { width, height } = useWindowSize();
   const [pending, startTransition] = useTransition();
-  const { isListeningIgnored, isSpeakingIgnored, ignoreListeningFor15Min, ignoreSpeakingFor15Min } = usePreferences();
+  const {
+    isListeningIgnored,
+    isSpeakingIgnored,
+    ignoreListeningFor15Min,
+    ignoreSpeakingFor15Min,
+  } = usePreferences();
   const { t } = useLocale();
 
   // Lesson clock
@@ -211,21 +227,32 @@ export function ExerciseQuiz({
   const [questionStart, setQuestionStart] = useState(() => Date.now());
 
   // We maintain a dynamic queue of exercises (to re-add wrong ones)
-  const [dynamicQueue, setDynamicQueue] = useState<Exercise[]>(lesson.exercises as Exercise[]);
+  const [dynamicQueue, setDynamicQueue] = useState<Exercise[]>(
+    lesson.exercises as Exercise[]
+  );
 
   // Per-question feedback
-  const [feedbackStatus, setFeedbackStatus] = useState<"none" | "correct" | "wrong" | "skipped" | "warning">("none");
+  const [feedbackStatus, setFeedbackStatus] = useState<
+    "none" | "correct" | "wrong" | "skipped" | "warning"
+  >("none");
   const [currentRawAnswer, setCurrentRawAnswer] = useState<unknown>(undefined);
-  const [correctAnswerText, setCorrectAnswerText] = useState<string | undefined>();
+  const [correctAnswerText, setCorrectAnswerText] = useState<
+    string | undefined
+  >();
   const [skippedMessage, setSkippedMessage] = useState<string | undefined>();
   const [speakTries, setSpeakTries] = useState(0);
 
   // Lesson finished
   const [finished, setFinished] = useState(false);
-  const [progressResult, setProgressResult] = useState<ProgressResponse | null>(null);
+  const [progressResult, setProgressResult] = useState<ProgressResponse | null>(
+    null
+  );
 
   const extraExercises = dynamicQueue.length - lesson.exercises.length;
-  const percentage = Math.min(100, Math.round(((activeIndex - extraExercises) / lesson.exercises.length) * 100));
+  const percentage = Math.min(
+    100,
+    Math.round(((activeIndex - extraExercises) / lesson.exercises.length) * 100)
+  );
   const currentExercise = dynamicQueue[activeIndex];
   const [mounted, setMounted] = useState(false);
 
@@ -237,7 +264,8 @@ export function ExerciseQuiz({
   useEffect(() => {
     if (mounted && activeIndex === 0 && answers.length === 0) {
       const filtered = lesson.exercises.filter((ex) => {
-        const needsListen = ex.type === "TYPE_HEAR" || ex.type === "LISTEN_FILL";
+        const needsListen =
+          ex.type === "TYPE_HEAR" || ex.type === "LISTEN_FILL";
         const needsSpeak = ex.type === "SPEAK_SENTENCE";
         if (needsListen && isListeningIgnored()) return false;
         if (needsSpeak && isSpeakingIgnored()) return false;
@@ -263,12 +291,20 @@ export function ExerciseQuiz({
 
     if (needsListen) {
       ignoreListeningFor15Min();
-      setDynamicQueue(prev => prev.filter((ex, i) => i <= activeIndex || (ex.type !== "TYPE_HEAR" && ex.type !== "LISTEN_FILL")));
+      setDynamicQueue((prev) =>
+        prev.filter(
+          (ex, i) =>
+            i <= activeIndex ||
+            (ex.type !== "TYPE_HEAR" && ex.type !== "LISTEN_FILL")
+        )
+      );
       setSkippedMessage(t.listeningDisabled);
       handleAnswer("__SKIPPED__");
     } else if (needsSpeak) {
       ignoreSpeakingFor15Min();
-      setDynamicQueue(prev => prev.filter((ex, i) => i <= activeIndex || ex.type !== "SPEAK_SENTENCE"));
+      setDynamicQueue((prev) =>
+        prev.filter((ex, i) => i <= activeIndex || ex.type !== "SPEAK_SENTENCE")
+      );
       setSkippedMessage(t.speakingDisabled);
       handleAnswer("__SKIPPED__");
     }
@@ -277,7 +313,12 @@ export function ExerciseQuiz({
   // ── Answer received from ExerciseEngine sub-component ──────────────────
   const handleAnswer = async (rawAnswer: unknown) => {
     // Only block if already correct or skipped (allow 'warning' to be re-evaluated)
-    if (feedbackStatus === "correct" || feedbackStatus === "skipped" || feedbackStatus === "wrong") return;
+    if (
+      feedbackStatus === "correct" ||
+      feedbackStatus === "skipped" ||
+      feedbackStatus === "wrong"
+    )
+      return;
     setCurrentRawAnswer(rawAnswer);
 
     try {
@@ -326,7 +367,9 @@ export function ExerciseQuiz({
         }
       : null;
 
-    const updatedAnswers = currentDetail ? [...answers, currentDetail] : answers;
+    const updatedAnswers = currentDetail
+      ? [...answers, currentDetail]
+      : answers;
     setAnswers(updatedAnswers);
 
     let nextQueue = dynamicQueue;
@@ -383,14 +426,18 @@ export function ExerciseQuiz({
   // ── Empty lesson (No exercises assigned) ─────────────────────────────────
   if (lesson.exercises.length === 0) {
     return (
-      <div className="mx-auto flex h-full max-w-lg flex-col items-center justify-center gap-y-6 text-center px-4 py-10">
-        <Image src="/finish.svg" alt="Empty" height={100} width={100} className="grayscale" />
+      <div className="mx-auto flex h-full max-w-lg flex-col items-center justify-center gap-y-6 px-4 py-10 text-center">
+        <Image
+          src="/finish.svg"
+          alt="Empty"
+          height={100}
+          width={100}
+          className="grayscale"
+        />
         <h1 className="text-2xl font-bold text-neutral-700 lg:text-3xl">
           {t.lessonEmptyTitle}
         </h1>
-        <p className="text-neutral-500 text-lg">
-          {t.lessonEmptyDesc}
-        </p>
+        <p className="text-lg text-neutral-500">{t.lessonEmptyDesc}</p>
         <button
           onClick={() => router.push("/learn")}
           className="mt-4 w-full rounded-xl border-b-4 border-green-600 bg-green-500 py-3 font-bold text-white transition hover:bg-green-400"
@@ -404,7 +451,9 @@ export function ExerciseQuiz({
   // ── Lesson complete screen ───────────────────────────────────────────────
   if (finished) {
     const correct = answers.filter((a) => a.is_correct).length;
-    const score = answers.length ? Math.round((correct / answers.length) * 100) : 0;
+    const score = answers.length
+      ? Math.round((correct / answers.length) * 100)
+      : 0;
 
     return (
       <>
@@ -415,7 +464,7 @@ export function ExerciseQuiz({
           width={width}
           height={height}
         />
-        <div className="mx-auto flex h-full max-w-lg flex-col items-center justify-center gap-y-6 text-center px-4 py-10">
+        <div className="mx-auto flex h-full max-w-lg flex-col items-center justify-center gap-y-6 px-4 py-10 text-center">
           <Image src="/finish.svg" alt="Finish" height={100} width={100} />
           <h1 className="text-2xl font-bold text-neutral-700 lg:text-3xl">
             {t.greatJob} <br /> {t.lessonComplete}
@@ -424,8 +473,12 @@ export function ExerciseQuiz({
           {/* Score */}
           <div className="flex w-full items-center justify-center gap-x-6">
             <div className="flex flex-col items-center rounded-xl border-2 border-yellow-400 bg-yellow-50 px-6 py-3">
-              <span className="text-2xl font-bold text-yellow-500">{score}</span>
-              <span className="text-xs font-semibold uppercase text-yellow-400">{t.score}</span>
+              <span className="text-2xl font-bold text-yellow-500">
+                {score}
+              </span>
+              <span className="text-xs font-semibold uppercase text-yellow-400">
+                {t.score}
+              </span>
             </div>
             {/* <div className="flex flex-col items-center rounded-xl border-2 border-rose-400 bg-rose-50 px-6 py-3">
               <span className="text-2xl font-bold text-rose-500">{hearts}</span>
@@ -433,8 +486,12 @@ export function ExerciseQuiz({
             </div> */}
             {progressResult && (
               <div className="flex flex-col items-center rounded-xl border-2 border-green-400 bg-green-50 px-6 py-3">
-                <span className="text-2xl font-bold text-green-500">+{progressResult.xp_earned}</span>
-                <span className="text-xs font-semibold uppercase text-green-400">XP</span>
+                <span className="text-2xl font-bold text-green-500">
+                  +{progressResult.xp_earned}
+                </span>
+                <span className="text-xs font-semibold uppercase text-green-400">
+                  XP
+                </span>
               </div>
             )}
           </div>
@@ -457,14 +514,22 @@ export function ExerciseQuiz({
     const qData = currentExercise.question_data as any;
 
     switch (type) {
-      case "COMPLETE_CONVERSATION": return t.selectCorrectResponse;
-      case "ARRANGE_WORDS": return t.formCorrectSentence;
-      case "COMPLETE_TRANSLATION": return t.translateSentence;
-      case "PICTURE_MATCH": return t.whichIs(qData.word || "word");
-      case "TYPE_HEAR": return t.typeWhatYouHear;
-      case "LISTEN_FILL": return t.listenSelectWords;
-      case "SPEAK_SENTENCE": return t.speakSentence;
-      default: return t.completeExercise;
+      case "COMPLETE_CONVERSATION":
+        return t.selectCorrectResponse;
+      case "ARRANGE_WORDS":
+        return t.formCorrectSentence;
+      case "COMPLETE_TRANSLATION":
+        return t.translateSentence;
+      case "PICTURE_MATCH":
+        return t.whichIs(qData.word || "word");
+      case "TYPE_HEAR":
+        return t.typeWhatYouHear;
+      case "LISTEN_FILL":
+        return t.listenSelectWords;
+      case "SPEAK_SENTENCE":
+        return t.speakSentence;
+      default:
+        return t.completeExercise;
     }
   };
 
@@ -473,10 +538,17 @@ export function ExerciseQuiz({
   let onIgnore: (() => void) | undefined = undefined;
 
   if (mounted) {
-    if (!isListeningIgnored() && (currentExercise?.type === "TYPE_HEAR" || currentExercise?.type === "LISTEN_FILL")) {
+    if (
+      !isListeningIgnored() &&
+      (currentExercise?.type === "TYPE_HEAR" ||
+        currentExercise?.type === "LISTEN_FILL")
+    ) {
       ignoreLabel = t.cantListenNow;
       onIgnore = handleIgnore;
-    } else if (!isSpeakingIgnored() && currentExercise?.type === "SPEAK_SENTENCE") {
+    } else if (
+      !isSpeakingIgnored() &&
+      currentExercise?.type === "SPEAK_SENTENCE"
+    ) {
       ignoreLabel = t.cantSpeakNow;
       onIgnore = handleIgnore;
     }
@@ -488,7 +560,6 @@ export function ExerciseQuiz({
 
       <div className="flex-1 overflow-y-auto">
         <div className="mx-auto flex h-full max-w-[600px] flex-col gap-y-8 px-6 py-10 lg:px-0">
-
           {/* Exercise title */}
           <h1 className="text-center text-lg font-bold text-neutral-700 lg:text-start lg:text-3xl">
             {getInstructionText()}

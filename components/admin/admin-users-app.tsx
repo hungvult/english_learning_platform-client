@@ -131,7 +131,11 @@ const onLogout = async () => {
 const AdminMenu = () => (
   <Menu>
     <Menu.DashboardItem leftIcon={<DashboardIcon />} />
-    <Menu.Item to="/content/courses" primaryText="Content Explorer" leftIcon={<AccountTreeIcon />} />
+    <Menu.Item
+      to="/content/courses"
+      primaryText="Content Explorer"
+      leftIcon={<AccountTreeIcon />}
+    />
     <Menu.ResourceItems />
 
     <Box sx={{ mt: 2, px: 2, pb: 2 }}>
@@ -183,9 +187,15 @@ export function AdminUsersApp() {
         <AdminUI title="Admin" dashboard={Dashboard} layout={AdminLayout}>
           {/* Multi-page content navigation: Course → Unit → Lesson → Exercise */}
           <CustomRoutes>
-            <Route path="/content" element={<Navigate to="/content/courses" replace />} />
+            <Route
+              path="/content"
+              element={<Navigate to="/content/courses" replace />}
+            />
             <Route path="/content/courses" element={<CoursesPage />} />
-            <Route path="/content/courses/:courseId/units" element={<UnitsPage />} />
+            <Route
+              path="/content/courses/:courseId/units"
+              element={<UnitsPage />}
+            />
             <Route
               path="/content/courses/:courseId/units/:unitId/lessons"
               element={<LessonsPage />}
@@ -216,4 +226,3 @@ export function AdminUsersApp() {
     </BrowserRouter>
   );
 }
-

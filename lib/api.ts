@@ -25,10 +25,7 @@ const getAuthToken = async (): Promise<string | null> => {
   return getServerAuthToken();
 };
 
-export async function api<T>(
-  path: string,
-  init?: RequestInit
-): Promise<T> {
+export async function api<T>(path: string, init?: RequestInit): Promise<T> {
   const token = await getAuthToken();
   const headers = new Headers(init?.headers);
   const isFormDataBody =

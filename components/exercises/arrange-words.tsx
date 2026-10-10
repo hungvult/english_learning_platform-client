@@ -14,7 +14,9 @@ type Props = {
 
 export function ArrangeWords({ data, onAnswer, disabled }: Props) {
   const { t } = useLocale();
-  const [available, setAvailable] = useState<string[]>([...data.tokens].sort(() => Math.random() - 0.5));
+  const [available, setAvailable] = useState<string[]>(
+    [...data.tokens].sort(() => Math.random() - 0.5)
+  );
   const [arranged, setArranged] = useState<string[]>([]);
   const [submitted, setSubmitted] = useState(false);
 
@@ -41,10 +43,8 @@ export function ArrangeWords({ data, onAnswer, disabled }: Props) {
 
   return (
     <div className="flex flex-col gap-y-4">
-
-
       {/* Drop zone */}
-      <div className="min-h-[56px] rounded-xl border-2 border-dashed border-slate-300 p-2 flex flex-wrap gap-2">
+      <div className="flex min-h-[56px] flex-wrap gap-2 rounded-xl border-2 border-dashed border-slate-300 p-2">
         {arranged.map((token, i) => (
           <button
             key={`${token}-${i}`}
@@ -64,7 +64,7 @@ export function ArrangeWords({ data, onAnswer, disabled }: Props) {
             key={`${token}-${i}`}
             onClick={() => addToken(token, i)}
             disabled={disabled}
-            className="rounded-lg border-2 border-b-4 border-slate-300 bg-white px-3 py-1.5 text-sm font-medium hover:bg-slate-50 active:border-b-2 transition"
+            className="rounded-lg border-2 border-b-4 border-slate-300 bg-white px-3 py-1.5 text-sm font-medium transition hover:bg-slate-50 active:border-b-2"
           >
             {token}
           </button>
@@ -77,7 +77,8 @@ export function ArrangeWords({ data, onAnswer, disabled }: Props) {
         className={cn(
           "mt-2 w-full rounded-xl border-b-4 border-green-600 bg-green-500 py-3 font-bold text-white transition",
           "hover:bg-green-400 active:border-b-0",
-          (arranged.length === 0 || submitted) && "pointer-events-none opacity-60"
+          (arranged.length === 0 || submitted) &&
+            "pointer-events-none opacity-60"
         )}
       >
         {submitted ? t.submitted : t.check}

@@ -3,7 +3,15 @@
 import { type ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import { TextInput, useNotify, useSourceContext } from "react-admin";
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Typography,
+} from "@mui/material";
 
 import { adminFetch, parseApiError } from "@/lib/admin-api";
 import { resolveMediaUrl } from "@/lib/media";
@@ -40,7 +48,9 @@ function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
 }
 
-async function loadImageFromObjectUrl(objectUrl: string): Promise<HTMLImageElement> {
+async function loadImageFromObjectUrl(
+  objectUrl: string
+): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => resolve(img);
@@ -85,7 +95,12 @@ async function buildCroppedFile(
   crop: CropRect
 ): Promise<File> {
   const targetMimeType = file.type === "image/png" ? "image/png" : "image/jpeg";
-  const dataUrl = await generateSquarePreview(image, crop, targetMimeType, 0.92);
+  const dataUrl = await generateSquarePreview(
+    image,
+    crop,
+    targetMimeType,
+    0.92
+  );
   const response = await fetch(dataUrl);
   const blob = await response.blob();
 
@@ -135,7 +150,8 @@ export function ImageOptionField({ source }: Props) {
       return;
     }
 
-    const targetMimeType = pendingFile?.type === "image/png" ? "image/png" : "image/jpeg";
+    const targetMimeType =
+      pendingFile?.type === "image/png" ? "image/png" : "image/jpeg";
     generateSquarePreview(cropImage, cropRect, targetMimeType)
       .then(setCropPreviewUrl)
       .catch(() => setCropPreviewUrl(""));
@@ -156,16 +172,31 @@ export function ImageOptionField({ source }: Props) {
       const deltaY = pxToImage(event.clientY - dragState.startY);
 
       if (dragState.mode === "move") {
-        const nextX = clamp(Math.round(dragState.origin.x + deltaX), 0, width - cropRect.size);
-        const nextY = clamp(Math.round(dragState.origin.y + deltaY), 0, height - cropRect.size);
+        const nextX = clamp(
+          Math.round(dragState.origin.x + deltaX),
+          0,
+          width - cropRect.size
+        );
+        const nextY = clamp(
+          Math.round(dragState.origin.y + deltaY),
+          0,
+          height - cropRect.size
+        );
         setCropRect((prev) => ({ ...prev, x: nextX, y: nextY }));
         return;
       }
 
       if (dragState.mode === "resize") {
         const delta = Math.max(deltaX, deltaY);
-        const maxSize = Math.min(width - dragState.origin.x, height - dragState.origin.y);
-        const nextSize = clamp(Math.round(dragState.origin.size + delta), 32, maxSize);
+        const maxSize = Math.min(
+          width - dragState.origin.x,
+          height - dragState.origin.y
+        );
+        const nextSize = clamp(
+          Math.round(dragState.origin.size + delta),
+          32,
+          maxSize
+        );
         setCropRect((prev) => ({ ...prev, size: nextSize }));
       }
     };
@@ -234,14 +265,21 @@ export function ImageOptionField({ source }: Props) {
 
     setUploading(true);
     try {
-      const croppedFile = await buildCroppedFile(pendingFile, cropImage, cropRect);
+      const croppedFile = await buildCroppedFile(
+        pendingFile,
+        cropImage,
+        cropRect
+      );
       const body = new FormData();
       body.append("file", croppedFile);
 
-      const response = await adminFetch<UploadImageResponse>("/api/v1/admin/exercises/upload-image", {
-        method: "POST",
-        body,
-      });
+      const response = await adminFetch<UploadImageResponse>(
+        "/api/v1/admin/exercises/upload-image",
+        {
+          method: "POST",
+          body,
+        }
+      );
       setValue(finalSource, response.image_url, {
         shouldDirty: true,
         shouldTouch: true,
@@ -267,7 +305,10 @@ export function ImageOptionField({ source }: Props) {
   const cropOverlay = useMemo(() => {
     if (!cropImage) return null;
     const frameSize = 280;
-    const fitScale = Math.min(frameSize / cropBounds.width, frameSize / cropBounds.height);
+    const fitScale = Math.min(
+      frameSize / cropBounds.width,
+      frameSize / cropBounds.height
+    );
     const displayWidth = cropBounds.width * fitScale;
     const displayHeight = cropBounds.height * fitScale;
     const offsetLeft = (frameSize - displayWidth) / 2;
@@ -284,7 +325,14 @@ export function ImageOptionField({ source }: Props) {
       top: offsetTop + cropRect.y * fitScale,
       size: cropRect.size * fitScale,
     };
-  }, [cropBounds.height, cropBounds.width, cropImage, cropRect.x, cropRect.y, cropRect.size]);
+  }, [
+    cropBounds.height,
+    cropBounds.width,
+    cropImage,
+    cropRect.x,
+    cropRect.y,
+    cropRect.size,
+  ]);
 
   const startDraggingMove = (event: React.MouseEvent<HTMLDivElement>) => {
     event.preventDefault();
@@ -346,7 +394,9 @@ export function ImageOptionField({ source }: Props) {
   };
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 1, minWidth: 260 }}>
+    <Box
+      sx={{ display: "flex", flexDirection: "column", gap: 1, minWidth: 260 }}
+    >
       {previewUrl ? (
         <Box
           sx={{
@@ -400,7 +450,12 @@ export function ImageOptionField({ source }: Props) {
         onChange={onFileSelected}
       />
 
-      <TextInput source={source} label="Image URL" fullWidth helperText="Supports images/... or /static/images/..." />
+      <TextInput
+        source={source}
+        label="Image URL"
+        fullWidth
+        helperText="Supports images/... or /static/images/..."
+      />
 
       <Dialog open={cropOpen} onClose={resetCropState} maxWidth="md" fullWidth>
         <DialogTitle>Crop image 1:1</DialogTitle>
@@ -522,7 +577,11 @@ export function ImageOptionField({ source }: Props) {
           <Button onClick={resetCropState} disabled={uploading}>
             Cancel
           </Button>
-          <Button onClick={uploadCroppedImage} variant="contained" disabled={uploading || !cropImage}>
+          <Button
+            onClick={uploadCroppedImage}
+            variant="contained"
+            disabled={uploading || !cropImage}
+          >
             {uploading ? "Uploading..." : "Crop & Upload"}
           </Button>
         </DialogActions>

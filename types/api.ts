@@ -167,8 +167,7 @@ export interface ListenFillData {
   word_bank: WordBankItem[];
 }
 
-export interface SpeakSentenceData {
-}
+export interface SpeakSentenceData {}
 
 export interface Exercise {
   id: string;

@@ -63,7 +63,8 @@ export const translations = {
     greatJob: "Great job!",
     lessonComplete: "You've completed the lesson.",
     lessonEmptyTitle: "Lesson Empty",
-    lessonEmptyDesc: "This lesson doesn't have any exercises yet. Check back later!",
+    lessonEmptyDesc:
+      "This lesson doesn't have any exercises yet. Check back later!",
     score: "Score",
     hearts: "Hearts",
     heartsLeft: "Hearts Left",
@@ -212,7 +213,7 @@ export const translations = {
 } as const;
 
 export type Translations = {
-  [K in keyof typeof translations["en"]]: (typeof translations["en"])[K] extends (
+  [K in keyof (typeof translations)["en"]]: (typeof translations)["en"][K] extends (
     ...args: infer A
   ) => string
     ? (...args: A) => string

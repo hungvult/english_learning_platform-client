@@ -20,8 +20,8 @@ const SetupPage = async () => {
   }
 
   return (
-    <div className="h-full max-w-[912px] px-3 mx-auto pb-10">
-      <h1 className="text-2xl font-bold text-neutral-700 mt-10 text-center">
+    <div className="mx-auto h-full max-w-[912px] px-3 pb-10">
+      <h1 className="mt-10 text-center text-2xl font-bold text-neutral-700">
         Choose your active course
       </h1>
       <SetupList courses={data.courses} />
